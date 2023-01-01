@@ -40,16 +40,6 @@ void creatfile()
     if (strcmp(option, "file") == 0){
         files(path);
     }
-    // int check;
-    // char* dirname = "root/dir1";
-    // check = mkdir(dirname, 0777);
-    // if (check == 1) printf("kir\n");
-
-
-    // FILE *fp = NULL;
-    // fp  = fopen("text.txt", "w");
-    // if (fp == NULL) printf("kir\n");
-    // fclose(fp);
 }
 
 void cat()
@@ -68,11 +58,67 @@ void cat()
     if (fp == NULL){printf("file not found\n"); return;}
     int c;
     while(1)
-   {
+    {
       c = fgetc(fp);
       if(feof(fp)) break;
       printf("%c", c);
-   }
+    }
+   fclose(fp);
+   return;
+}
+
+void insert()
+{
+    char option[100], filename[MAX_VAL], message[MAX_VAL];
+    int line, start;
+    scanf(" -%s", option);
+    scanf(" %s", filename);
+    scanf(" -%s", option);
+    scanf(" %s", message);
+    scanf(" -%s", option);
+    scanf(" %d:%d", &line, &start);
+    if (filename[0] == '/'){
+        for (ll i = 1 ; i < strlen(filename) ; i++){
+            filename[i - 1] = filename[i];
+        }
+        filename[strlen(filename) - 1] = '\0';
+    }
+    FILE *fp, *fpr;
+    fpr = fopen(filename, "r");
+    if (fpr == NULL){printf("file not found\n"); return;}
+    int position = 0, counter = 0;
+    int count = 0;
+    char string[MAX_VAL] = {};
+    int c;
+    while(1)
+    {
+        c = fgetc(fpr);
+        if(feof(fpr)) break;
+        if (counter < line  - 1)
+        {
+        if (c == (int)'\n') counter++;
+        position++;
+        }
+        string[count] = c;
+        count++;
+    }
+    fclose(fpr);
+    position += start;
+    fp = fopen(filename, "w+");
+    for (int i = 0 ; i < position ; i++){
+        fprintf(fp, "%c", string[i]);
+    }
+    fseek(fp, 0, SEEK_CUR);
+    fprintf(fp, "%s", message);
+    for (int i = position ; i < strlen(string) ; i++){
+        fprintf(fp, "%c", string[i]);
+    }
+    // fprintf(fp, "%s", string);
+    // printf("%s", string);
+    // fseek(fp, position, SEEK_SET);
+    // fprintf(fp, "%s ", message);
+    fclose(fp);
+    return;
 }
 
 int main()
@@ -81,10 +127,13 @@ int main()
     int run = 1;
     while (run)
     {
+        //printf("$");
         scanf("%s", command);
         if (strcmp(command ,"exit") == 0) run = 0;
         else if (strcmp(command, "createfile") == 0) creatfile();
         else if (strcmp(command, "cat") == 0) cat();
+        else if (strcmp(command, "insertstr") == 0) insert();
+        else printf("Invalid input\n");
     }
     return 0;
 }
