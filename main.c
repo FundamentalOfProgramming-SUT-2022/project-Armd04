@@ -8,6 +8,8 @@
 #define ll long long int
 #define MAX_VAL 10000
 
+char vc;
+
 void files(char path[])
 {
     int k = 0;
@@ -36,7 +38,8 @@ void creatfile()
 {
     char option[100], path[MAX_VAL];
     scanf(" -%s", option);
-    scanf(" %s", path);
+    if (scanf(" \"%[^\"]", path) != 0) scanf("%c", &vc);
+    else scanf(" %s", path);
     if (strcmp(option, "file") == 0){
         files(path);
     }
@@ -46,7 +49,8 @@ void cat()
 {
     char option[100], filename[MAX_VAL];
     scanf(" -%s", option);
-    scanf("%s", filename);
+    if (scanf(" \"%[^\"]", filename) != 0) scanf("%c", &vc);
+    else scanf(" %s", filename);
     if (filename[0] == '/'){
         for (ll i = 1 ; i < strlen(filename) ; i++){
             filename[i - 1] = filename[i];
@@ -72,9 +76,11 @@ void insert()
     char option[100], filename[MAX_VAL], message[MAX_VAL];
     int line, start;
     scanf(" -%s", option);
-    scanf(" %s", filename);
+    if (scanf(" \"%[^\"]", filename) != 0) scanf("%c", &vc);
+    else scanf(" %s", filename);
     scanf(" -%s", option);
-    scanf(" %s", message);
+    if (scanf(" \"%[^\"]", message) != 0) scanf("%c", &vc);
+    else scanf(" %s", message);
     scanf(" -%s", option);
     scanf(" %d:%d", &line, &start);
     if (filename[0] == '/'){
@@ -105,18 +111,29 @@ void insert()
     fclose(fpr);
     position += start;
     fp = fopen(filename, "w+");
+    fseek(fp, 0, SEEK_SET);
     for (int i = 0 ; i < position ; i++){
         fprintf(fp, "%c", string[i]);
     }
-    fseek(fp, 0, SEEK_CUR);
-    fprintf(fp, "%s", message);
+    int index = 0;
+    while (index < strlen(message))
+    {
+        if (index < strlen(message) - 1 && message[index] == '\\' && message[index + 1] == 'n'){
+            if (index > 0 && message[index - 1] == '\\') index++;
+            else{
+                fputc('\n', fp);
+                index += 2;
+            }
+        }
+        else{
+            fputc(message[index], fp);
+            index ++;
+        }
+    }
     for (int i = position ; i < strlen(string) ; i++){
         fprintf(fp, "%c", string[i]);
     }
-    // fprintf(fp, "%s", string);
-    // printf("%s", string);
-    // fseek(fp, position, SEEK_SET);
-    // fprintf(fp, "%s ", message);
+
     fclose(fp);
     return;
 }
