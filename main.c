@@ -138,6 +138,61 @@ void insert()
     return;
 }
 
+void removestr()
+{
+    char option[100], filename[MAX_VAL];
+    int sz, line, start;
+    scanf(" -%s", option);
+    if (scanf(" \"%[^\"]", filename) != 0) scanf("%c", &vc);
+    else scanf(" %s", filename);
+    scanf(" -%s", option);
+    scanf(" %d:%d", &line, &start);
+    scanf(" -%s", option);
+    scanf(" %d", &sz);
+    scanf(" -%s", option);
+    if (filename[0] == '/'){
+        for (ll i = 1 ; i < strlen(filename) ; i++){
+            filename[i - 1] = filename[i];
+        }
+        filename[strlen(filename) - 1] = '\0';
+    }
+    FILE *fp, *fpr;
+    fpr = fopen(filename, "r");
+    if (fpr == NULL){printf("file not found\n"); return;}
+    int position = 0, counter = 0;
+    int count = 0;
+    char string[MAX_VAL] = {};
+    int c;
+    while(1)
+    {
+        c = fgetc(fpr);
+        if(feof(fpr)) break;
+        if (counter < line  - 1)
+        {
+        if (c == (int)'\n') counter++;
+        position++;
+        }
+        string[count] = c;
+        count++;
+    }
+    fclose(fpr);
+    position += start;
+    fp = fopen(filename, "w+");
+    if (strcmp(option, "f") == 0)
+    {
+        int to = position + sz;
+        for (int i = 0 ; i < position ; i++) fprintf(fp, "%c", string[i]);
+        for (int i = to ; i < strlen(string) ; i++) fprintf(fp, "%c", string[i]);
+    }
+    else if (strcmp(option, "b") == 0)
+    {
+        int from = position - sz;
+        for (int i = 0 ; i <= from ; i++) fprintf(fp, "%c", string[i]);
+        for (int i = position + 1 ; i < strlen(string) ; i++) fprintf(fp, "%c", string[i]);
+    }
+    fclose(fp);
+}
+
 int main()
 {
     char command[100];
@@ -150,7 +205,8 @@ int main()
         else if (strcmp(command, "createfile") == 0) creatfile();
         else if (strcmp(command, "cat") == 0) cat();
         else if (strcmp(command, "insertstr") == 0) insert();
-        else printf("Invalid input\n");
+        else if (strcmp(command, "removestr") == 0) removestr();
+        else {scanf("%[^\n]", command);printf("Invalid input\n");}
     }
     return 0;
 }
