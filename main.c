@@ -56,7 +56,6 @@ void cat()
     scanf(" --%s", option);
     scanf("%c", &vc);
     getting(filename);
-    //printf("%s\n",filename);
     if (filename[0] == '/'){
         for (ll i = 1 ; i < strlen(filename) ; i++){
             filename[i - 1] = filename[i];
@@ -445,52 +444,218 @@ void find()
 {
     char option[100], string[MAX_VAL] = {};
     char message[MAX_VAL], filename[MAX_VAL];
-    int fcount = 0, fat = 0, fbyword = 0, fall = 0, num_at;
+    int fcount = 0, fat = 0, fbyword = 0, fall = 0, flag_op;
+    int num_of_words = 1, num_at, num_count = 0;
     scanf(" --%s", option);
     scanf("%c", &vc);
     getting(message);
-    scanf("%c", &vc);
     scanf(" --%s", option);
-    getting(filename);
+    scanf("%c", &vc);
+    flag_op = getting_find(filename);
     if (filename[0] == '/'){
         for (ll i = 1 ; i < strlen(filename) ; i++){
             filename[i - 1] = filename[i];
         }
         filename[strlen(filename) - 1] = '\0';
     }
-    // scanf("%c", &vc);
-    // while (vc != '\n')
-    // {
-    //     scanf("-%s", option);
-    //     if (strcmp(option, "count") == 0) fcount++;
-    //     else if (strcmp(option, "at") == 0) {fat++; scanf(" %d", &num_at);}
-    //     else if (strcmp(option, "byword") == 0) fbyword++;
-    //     else if (strcmp(option, "all") == 0) fall++;
-    //     printf("%d\n", fbyword);
-    //     scanf("%c", &vc);
-    // }
+    options_find(&fcount, &fat, &fbyword, &fall, &flag_op, &num_at);
     FILE *fpr;
     fpr = fopen(filename, "r");
     if (fpr == NULL) {printf("file not found\n"); return;}
-    int c, count = 0;
-    while(1)
+    if (fcount == 1 && fall + fat + fbyword != 0) {printf("Invalid set of option\n"); return;}
+    if (fall == 1 && fat == 1) {printf("Invalid set of options\n"); return;}
+    if (fcount == 0 && fat == 0 && fall == 0 && fbyword == 0)
     {
-        c = fgetc(fpr);
-        if(feof(fpr)) break;
-        string[count] = c;
-        count++;
-    }
-    fclose(fpr);
-    int flag = 1;
-    for (int i = 0 ; i <= strlen(string) - strlen(message) ; i++)
-    {
-        flag = 1;
-        for (int j = i ; j < i + strlen(message) ; j++){
-            if (string[j] != message[j - i]) flag = 0;
+        int c, count = 0;
+        while(1)
+        {
+            c = fgetc(fpr);
+            if(feof(fpr)) break;
+            string[count] = c;
+            count++;
         }
-        if (flag == 1){
-            printf("%d\n", i);
-            break;
+        fclose(fpr);
+        int flag = 1, flag2 = 0;
+        for (int i = 0 ; i <= strlen(string) - strlen(message) ; i++)
+        {
+            flag = 1;
+            for (int j = i ; j < i + strlen(message) ; j++){
+                if (string[j] != message[j - i]) flag = 0;
+            }
+            if (flag == 1){
+                flag2 = 1;
+                printf("%d\n", i);
+                break;
+            }
+        }
+        if (flag2 == 0) printf("%d\n", -1);
+        return;
+    }
+    if (fcount == 1)
+    {
+        int c, count = 0;
+        while(1)
+        {
+            c = fgetc(fpr);
+            if(feof(fpr)) break;
+            string[count] = c;
+            count++;
+        }
+        fclose(fpr);
+        int flag = 1, flag2 = 0;
+        for (int i = 0 ; i <= strlen(string) - strlen(message) ; i++)
+        {
+            flag = 1;
+            for (int j = i ; j < i + strlen(message) ; j++){
+                if (string[j] != message[j - i]) flag = 0;
+            }
+            if (flag == 1){
+                num_count++;
+            }
+        }
+        printf("%d\n", num_count);
+        return;
+    }
+    if (fall == 1)
+    {
+        if (fbyword == 1)
+        {
+            int c, count = 0;
+            while(1)
+            {
+                c = fgetc(fpr);
+                if(feof(fpr)) break;
+                string[count] = c;
+                count++;
+            }
+            fclose(fpr);
+            int flag = 1, flag2 = 0;
+            for (int i = 0 ; i <= strlen(string) - strlen(message) ; i++)
+            {
+                flag = 1;
+                if (string[i] == ' ' || string[i] == '\n') num_of_words++;
+                for (int j = i ; j < i + strlen(message) ; j++){
+                    if (string[j] != message[j - i]) flag = 0;
+                }
+                if (flag == 1){
+                    flag2 = 1;
+                    printf("%d, ", num_of_words);
+                }
+            }
+            if (flag2 == 0) printf("%d", -1);
+            printf("\n");
+            return;
+        }
+        else
+        {
+           int c, count = 0;
+            while(1)
+            {
+                c = fgetc(fpr);
+                if(feof(fpr)) break;
+                string[count] = c;
+                count++;
+            }
+            fclose(fpr);
+            int flag = 1, flag2 = 0;
+            for (int i = 0 ; i <= strlen(string) - strlen(message) ; i++)
+            {
+                flag = 1;
+                for (int j = i ; j < i + strlen(message) ; j++){
+                    if (string[j] != message[j - i]) flag = 0;
+                }
+                if (flag == 1){
+                    flag2 = 1;
+                    printf("%d, ", i);
+                }
+            }
+            if (flag2 == 0) printf("%d", -1);
+            printf("\n");
+            return; 
+        }
+    }
+    if (fbyword == 1 && fall == 0 && fat == 0)
+    {
+        int c, count = 0;
+        while(1)
+        {
+            c = fgetc(fpr);
+            if(feof(fpr)) break;
+            string[count] = c;
+            count++;
+        }
+        fclose(fpr);
+        int flag = 1, flag2 = 0;
+        for (int i = 0 ; i <= strlen(string) - strlen(message) ; i++)
+        {
+            flag = 1;
+            if (string[i] == ' ' || string[i] == '\n') num_of_words++;
+            for (int j = i ; j < i + strlen(message) ; j++){
+                if (string[j] != message[j - i]) flag = 0;
+            }
+            if (flag == 1){
+                flag2 = 1;
+                printf("%d\n", num_of_words);
+                break;
+            }
+        }
+        if (flag2 == 0) printf("%d\n", -1);
+        return;
+    }
+    if (fat == 1)
+    {
+        if (fbyword == 0)
+        {
+            int c, count = 0;
+            while(1)
+            {
+                c = fgetc(fpr);
+                if(feof(fpr)) break;
+                string[count] = c;
+                count++;
+            }
+            fclose(fpr);
+            int flag = 1, flag2 = 0;
+            for (int i = 0 ; i <= strlen(string) - strlen(message) ; i++)
+            {
+                flag = 1;
+                for (int j = i ; j < i + strlen(message) ; j++){
+                    if (string[j] != message[j - i]) flag = 0;
+                }
+                if (flag == 1){
+                    num_count++;
+                    if (num_at == num_count) {printf("%d\n", i); break;}
+                }
+            }
+            if (num_at > num_count) printf("%d\n", -1);
+            return; 
+        }
+        else
+        {
+            int c, count = 0;
+            while(1)
+            {
+                c = fgetc(fpr);
+                if(feof(fpr)) break;
+                string[count] = c;
+                count++;
+            }
+            fclose(fpr);
+            int flag = 1, flag2 = 0;
+            for (int i = 0 ; i <= strlen(string) - strlen(message) ; i++)
+            {
+                flag = 1;
+                if (string[i] == ' ' || string[i] == '\n') num_of_words++;
+                for (int j = i ; j < i + strlen(message) ; j++){
+                    if (string[j] != message[j - i]) flag = 0;
+                }
+                if (flag == 1){
+                    num_count++;
+                    if (num_at == num_count) {printf("%d\n", num_of_words); break;}
+                }
+            }
+            if (num_at > num_count) printf("%d\n", -1);
+            return;
         }
     }
     return;
