@@ -4,12 +4,14 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <windows.h>
+//#include <windows.h>
+#include "get_input.h"
 
 #define ll long long int
 #define MAX_VAL 10000
 
 char vc;
+
 
 void files(char path[])
 {
@@ -21,7 +23,7 @@ void files(char path[])
         while (i < j) dir[k++] = path[i++];
         if (i == strlen(path)){
             FILE *fp = NULL;
-            fp = fopen(dir, "rb");
+            fp = fopen(dir, "r");
             if (fp != NULL) {printf("file is already existing\n"); fclose(fp); return;}
             else{
                 fp = fopen(dir, "a");
@@ -34,24 +36,27 @@ void files(char path[])
     }
 }
 
-
 void creatfile()
 {
-    char option[100], path[MAX_VAL];
-    scanf(" -%s", option);
-    if (scanf(" \"%[^\"]", path) != 0) scanf("%c", &vc);
-    else scanf(" %s", path);
+    char option[100];
+    char path[MAX_VAL];
+    scanf(" --%s", option);
+    scanf("%c", &vc);
+    getting(path);
     if (strcmp(option, "file") == 0){
         files(path);
     }
+    return;
 }
 
 void cat()
 {
-    char option[100], filename[MAX_VAL];
-    scanf(" -%s", option);
-    if (scanf(" \"%[^\"]", filename) != 0) scanf("%c", &vc);
-    else scanf(" %s", filename);
+    char option[100];
+    char filename[MAX_VAL];
+    scanf(" --%s", option);
+    scanf("%c", &vc);
+    getting(filename);
+    //printf("%s\n",filename);
     if (filename[0] == '/'){
         for (ll i = 1 ; i < strlen(filename) ; i++){
             filename[i - 1] = filename[i];
@@ -64,25 +69,26 @@ void cat()
     int c;
     while(1)
     {
-      c = fgetc(fp);
-      if(feof(fp)) break;
-      printf("%c", c);
+        c = fgetc(fp);
+        if(feof(fp)) break;
+        printf("%c", c);
     }
-   fclose(fp);
-   return;
+    fclose(fp);
+    return;
 }
 
 void insertstr()
 {
-    char option[100], filename[MAX_VAL], message[MAX_VAL];
+    char option[100];
+    char message[MAX_VAL], filename[MAX_VAL];
     int line, start;
-    scanf(" -%s", option);
-    if (scanf(" \"%[^\"]", filename) != 0) scanf("%c", &vc);
-    else scanf(" %s", filename);
-    scanf(" -%s", option);
-    if (scanf(" \"%[^\"]", message) != 0) scanf("%c", &vc);
-    else scanf(" %s", message);
-    scanf(" -%s", option);
+    scanf(" --%s", option);
+    scanf("%c", &vc);   
+    getting(filename);
+    scanf(" --%s", option);
+    scanf("%c", &vc);
+    getting(message);
+    scanf(" --%s", option);
     scanf(" %d:%d", &line, &start);
     if (filename[0] == '/'){
         for (ll i = 1 ; i < strlen(filename) ; i++){
@@ -141,16 +147,17 @@ void insertstr()
 
 void removestr()
 {
-    char option[100], filename[MAX_VAL];
+    char option[100];
+    char filename[MAX_VAL];
     int sz, line, start;
-    scanf(" -%s", option);
-    if (scanf(" \"%[^\"]", filename) != 0) scanf("%c", &vc);
-    else scanf(" %s", filename);
-    scanf(" -%s", option);
+    scanf(" --%s", option);
+    scanf("%c", &vc);
+    getting(filename);
+    scanf(" --%s", option);
     scanf(" %d:%d", &line, &start);
-    scanf(" -%s", option);
+    scanf(" --%s", option);
     scanf(" %d", &sz);
-    scanf(" -%s", option);
+    scanf(" --%s", option);
     if (filename[0] == '/'){
         for (ll i = 1 ; i < strlen(filename) ; i++){
             filename[i - 1] = filename[i];
@@ -192,20 +199,23 @@ void removestr()
         for (int i = position + 1 ; i < strlen(string) ; i++) fprintf(fp, "%c", string[i]);
     }
     fclose(fp);
+    return;
 }
 
+/*
 void copystr()
 {
-    char option[100], filename[MAX_VAL];
+    char option[100];
+    char filename[MAX_VAL];
     int sz, line, start;
-    scanf(" -%s", option);
-    if (scanf(" \"%[^\"]", filename) != 0) scanf("%c", &vc);
-    else scanf(" %s", filename);
-    scanf(" -%s", option);
+    scanf(" --%s", option);
+    scanf("%c", &vc);
+    getting(filename);
+    scanf(" --%s", option);
     scanf(" %d:%d", &line, &start);
-    scanf(" -%s", option);
+    scanf(" --%s", option);
     scanf(" %d", &sz);
-    scanf(" -%s", option);
+    scanf(" --%s", option);
     if (filename[0] == '/'){
         for (ll i = 1 ; i < strlen(filename) ; i++){
             filename[i - 1] = filename[i];
@@ -263,12 +273,13 @@ void copystr()
 
 void pastestr()
 {
-    char option[100], filename[MAX_VAL], message[MAX_VAL];
+    char option[100];
+    char filename[MAX_VAL];
     int line, start;
-    scanf(" -%s", option);
-    if (scanf(" \"%[^\"]", filename) != 0) scanf("%c", &vc);
-    else scanf(" %s", filename);
-    scanf(" -%s", option);
+    scanf(" --%s", option);
+    scanf("%c", &vc);
+    getting(filename);
+    scanf(" --%s", option);
     scanf(" %d:%d", &line, &start);
     if (filename[0] == '/'){
         for (ll i = 1 ; i < strlen(filename) ; i++){
@@ -330,16 +341,17 @@ void pastestr()
 
 void cutstr()
 {
-    char option[100], filename[MAX_VAL];
+    char option[100];
+    char filename[MAX_VAL];
     int sz, line, start;
-    scanf(" -%s", option);
-    if (scanf(" \"%[^\"]", filename) != 0) scanf("%c", &vc);
-    else scanf(" %s", filename);
-    scanf(" -%s", option);
+    scanf(" --%s", option);
+    scanf("%c", &vc);
+    getting(filename);
+    scanf(" --%s", option);
     scanf(" %d:%d", &line, &start);
-    scanf(" -%s", option);
+    scanf(" --%s", option);
     scanf(" %d", &sz);
-    scanf(" -%s", option);
+    scanf(" --%s", option);
     if (filename[0] == '/'){
         for (ll i = 1 ; i < strlen(filename) ; i++){
             filename[i - 1] = filename[i];
@@ -427,6 +439,62 @@ void cutstr()
     }
     fclose(fp);
 }
+*/
+
+void find()
+{
+    char option[100], string[MAX_VAL] = {};
+    char message[MAX_VAL], filename[MAX_VAL];
+    int fcount = 0, fat = 0, fbyword = 0, fall = 0, num_at;
+    scanf(" --%s", option);
+    scanf("%c", &vc);
+    getting(message);
+    scanf("%c", &vc);
+    scanf(" --%s", option);
+    getting(filename);
+    if (filename[0] == '/'){
+        for (ll i = 1 ; i < strlen(filename) ; i++){
+            filename[i - 1] = filename[i];
+        }
+        filename[strlen(filename) - 1] = '\0';
+    }
+    // scanf("%c", &vc);
+    // while (vc != '\n')
+    // {
+    //     scanf("-%s", option);
+    //     if (strcmp(option, "count") == 0) fcount++;
+    //     else if (strcmp(option, "at") == 0) {fat++; scanf(" %d", &num_at);}
+    //     else if (strcmp(option, "byword") == 0) fbyword++;
+    //     else if (strcmp(option, "all") == 0) fall++;
+    //     printf("%d\n", fbyword);
+    //     scanf("%c", &vc);
+    // }
+    FILE *fpr;
+    fpr = fopen(filename, "r");
+    if (fpr == NULL) {printf("file not found\n"); return;}
+    int c, count = 0;
+    while(1)
+    {
+        c = fgetc(fpr);
+        if(feof(fpr)) break;
+        string[count] = c;
+        count++;
+    }
+    fclose(fpr);
+    int flag = 1;
+    for (int i = 0 ; i <= strlen(string) - strlen(message) ; i++)
+    {
+        flag = 1;
+        for (int j = i ; j < i + strlen(message) ; j++){
+            if (string[j] != message[j - i]) flag = 0;
+        }
+        if (flag == 1){
+            printf("%d\n", i);
+            break;
+        }
+    }
+    return;
+}
 
 int main()
 {
@@ -434,16 +502,16 @@ int main()
     int run = 1;
     while (run)
     {
-        //printf("$");
         scanf("%s", command);
         if (strcmp(command ,"exit") == 0) run = 0;
         else if (strcmp(command, "createfile") == 0) creatfile();
         else if (strcmp(command, "cat") == 0) cat();
         else if (strcmp(command, "insertstr") == 0) insertstr();
         else if (strcmp(command, "removestr") == 0) removestr();
-        else if (strcmp(command, "copystr") == 0) copystr();
-        else if (strcmp(command, "pastestr") == 0) pastestr();
-        else if (strcmp(command, "cutstr") == 0) cutstr();
+        // else if (strcmp(command, "copystr") == 0) copystr();
+        // else if (strcmp(command, "pastestr") == 0) pastestr();
+        // else if (strcmp(command, "cutstr") == 0) cutstr();
+        else if (strcmp(command, "find") == 0) find();
         else {scanf("%[^\n]", command);printf("Invalid input\n");}
     }
     return 0;
