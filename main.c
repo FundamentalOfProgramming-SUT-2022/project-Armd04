@@ -5,7 +5,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 //#include <windows.h>
-#include "get_input.h"
+#include "help_func.h"
 
 #define ll long long int
 #define MAX_VAL 10000
@@ -589,7 +589,7 @@ void find()
         for (int i = 0 ; i <= strlen(string) - strlen(message) ; i++)
         {
             flag = 1;
-            if (string[i] == ' ' || string[i] == '\n') num_of_words++;
+            if (i != 0 && (string[i - 1] != ' ' && string[i - 1] != '\n') && (string[i] == ' ' || string[i] == '\n')) num_of_words++;
             for (int j = i ; j < i + strlen(message) ; j++){
                 if (string[j] != message[j - i]) flag = 0;
             }
@@ -645,7 +645,7 @@ void find()
             for (int i = 0 ; i <= strlen(string) - strlen(message) ; i++)
             {
                 flag = 1;
-                if (string[i] == ' ' || string[i] == '\n') num_of_words++;
+                if (i != 0 && (string[i - 1] != ' ' && string[i - 1] != '\n') && (string[i] == ' ' || string[i] == '\n')) num_of_words++;
                 for (int j = i ; j < i + strlen(message) ; j++){
                     if (string[j] != message[j - i]) flag = 0;
                 }
@@ -659,6 +659,130 @@ void find()
         }
     }
     return;
+}
+
+void replace()
+{
+    char option[100];
+    char message[MAX_VAL], message2[MAX_VAL], filename[MAX_VAL], string[MAX_VAL] = {};
+    int fcount = 0, fat = 0, fbyword = 0, fall = 0, flag_op;
+    int num_at, num_count = 0;
+    scanf(" --%s", option);
+    scanf("%c", &vc);
+    getting(message);
+    scanf(" --%s", option);
+    scanf("%c", &vc);
+    getting(message2);
+    scanf(" --%s", option);
+    scanf("%c", &vc);
+    flag_op = getting_find(filename);
+    if (filename[0] == '/'){
+        for (ll i = 1 ; i < strlen(filename) ; i++){
+            filename[i - 1] = filename[i];
+        }
+        filename[strlen(filename) - 1] = '\0';
+    }
+    options_find(&fcount, &fat, &fbyword, &fall, &flag_op, &num_at);
+    FILE *fpr;
+    fpr = fopen(filename, "r");
+    if (fall == 1 && fat == 1) {printf("Invalid set of options\n"); return;}
+    if (fall == 0 && fat == 0)
+    {
+        int c, count = 0;
+        while(1)
+        {
+            c = fgetc(fpr);
+            if(feof(fpr)) break;
+            string[count] = c;
+            count++;
+        }
+        fclose(fpr);
+        int flag = 1, flag2 = 0;
+        for (int i = 0 ; i <= strlen(string) - strlen(message) ; i++)
+        {
+            flag = 1;
+            for (int j = i ; j < i + strlen(message) ; j++){
+                if (string[j] != message[j - i]) flag = 0;
+            }
+            if (flag == 1){
+                flag2 = 1;
+                removestr_u(filename, i, strlen(message), "f");
+                insertstr_u(filename, message2, i);
+                break;
+            }
+        }
+        if (flag2 == 0) printf("Not found\n");
+        return;
+    }
+    if (fall == 1)
+    {
+        int c, count = 0;
+        while(1)
+        {
+            c = fgetc(fpr);
+            if(feof(fpr)) break;
+            string[count] = c;
+            count++;
+        }
+        fclose(fpr);
+        int flag = 1, flag2 = 0;
+        for (int i = 0 ; i <= strlen(string) - strlen(message) ; i++)
+        {
+            flag = 1;
+            for (int j = i ; j < i + strlen(message) ; j++){
+                if (string[j] != message[j - i]) flag = 0;
+            }
+            if (flag == 1){
+                flag2 = 1;
+                removestr_u(filename, i, (int) strlen(message), "f");
+                insertstr_u(filename, message2, i);
+                fpr = fopen(filename, "r");
+                count = 0;
+                while(1)
+                {
+                    c = fgetc(fpr);
+                    if(feof(fpr)) break;
+                    string[count] = c;
+                    count++;
+                }
+                fclose(fpr);
+            }
+        }
+        if (flag2 == 0) printf("Not found\n");
+        return;
+    }
+    if (fat == 1)
+    {
+        int c, count = 0;
+        while(1)
+        {
+            c = fgetc(fpr);
+            if(feof(fpr)) break;
+            string[count] = c;
+            count++;
+        }
+        fclose(fpr);
+        int flag = 1, flag2 = 0;
+        for (int i = 0 ; i <= strlen(string) - strlen(message) ; i++)
+        {
+            flag = 1;
+            for (int j = i ; j < i + strlen(message) ; j++){
+                if (string[j] != message[j - i]) flag = 0;
+            }
+            if (flag == 1){
+                num_count++;
+                if (num_count == num_at)
+                {
+                    flag2 = 1;
+                    removestr_u(filename, i, strlen(message), "f");
+                    insertstr_u(filename, message2, i);
+                    break;
+                }
+            }
+        }
+        if (flag2 == 0) printf("Not found\n");
+        return;
+    }
 }
 
 int main()
@@ -677,6 +801,7 @@ int main()
         // else if (strcmp(command, "pastestr") == 0) pastestr();
         // else if (strcmp(command, "cutstr") == 0) cutstr();
         else if (strcmp(command, "find") == 0) find();
+        else if (strcmp(command, "replace") == 0) replace();
         else {scanf("%[^\n]", command);printf("Invalid input\n");}
     }
     return 0;

@@ -120,7 +120,7 @@ void options_find(int *fcount, int *fat, int *fbyword, int *fall, int *flag_op, 
             else if (strcmp(option,"at") == 0) {(*fat) = 1; scanf("%d", num_at);}
             else if (strcmp(option, "byword") == 0) (*fbyword) = 1;
             else if (strcmp(option, "all") == 0) (*fall) = 1;
-            else printf("Wrong option\n");
+            else {printf("Invalid option\n"); return;}
         }
         return;
     }
@@ -130,12 +130,12 @@ void options_find(int *fcount, int *fat, int *fbyword, int *fall, int *flag_op, 
         while (1)
         {
             if (vc == '\n') return;
-            scanf("--%s", option);
+            if (scanf("--%s", option) == 0) return;
             if (strcmp(option, "count") == 0) (*fcount) = 1;
             else if (strcmp(option,"at") == 0) {(*fat) = 1; scanf("%d", num_at);}
             else if (strcmp(option, "byword") == 0) (*fbyword) = 1;
             else if (strcmp(option, "all") == 0) (*fall) = 1;
-            else printf("Wrong option\n");
+            else {printf("Invalid option\n"); return;}
             scanf("%c", &vc);
         }
         return;
