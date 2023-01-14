@@ -98,3 +98,33 @@ void removestr_u(char *filename, int position, int sz, char *option)
     fclose(fp);
     return;
 }
+
+void make_copy(char *filename)
+{
+    char filename2[100];
+    strcpy(filename2, filename);
+    int flag = 0;
+    for (int i = strlen(filename2) - 1 ; i >= 0 ; i--)
+    {
+        if (filename2[i] == '/')
+        {
+            filename2[i + 1] = '.';
+            flag = 1;
+            break;
+        }
+        if (flag == 0) filename2[i + 1] = filename2[i];
+    }
+    FILE *fp1, *fp2;
+    fp1 = fopen(filename, "r");
+    fp2 = fopen(filename2, "w");
+    int c;
+    while (1)
+    {
+        c = fgetc(fp1);
+        if (c == EOF) break;
+        fputc(c, fp2); 
+    }
+    fclose(fp1);
+    fclose(fp2);
+    return;
+}

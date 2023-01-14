@@ -95,6 +95,7 @@ void insertstr()
         }
         filename[strlen(filename) - 1] = '\0';
     }
+    make_copy(filename);
     FILE *fp, *fpr;
     fpr = fopen(filename, "r");
     if (fpr == NULL){printf("file not found\n"); return;}
@@ -163,6 +164,7 @@ void removestr()
         }
         filename[strlen(filename) - 1] = '\0';
     }
+    make_copy(filename);
     FILE *fp, *fpr;
     fpr = fopen(filename, "r");
     if (fpr == NULL){printf("file not found\n"); return;}
@@ -683,6 +685,7 @@ void replace()
         filename[strlen(filename) - 1] = '\0';
     }
     options_find(&fcount, &fat, &fbyword, &fall, &flag_op, &num_at);
+    // make_copy(filename);
     FILE *fpr;
     fpr = fopen(filename, "r");
     if (fall == 1 && fat == 1) {printf("Invalid set of options\n"); return;}
@@ -785,6 +788,63 @@ void replace()
     }
 }
 
+void undo_file()
+{
+    char filename[MAX_VAL], option[100], string[MAX_VAL] = {'\0'};
+    scanf(" --%s", option);
+    scanf("%c", &vc);
+    getting(filename);
+    if (filename[0] == '/'){
+        for (ll i = 1 ; i < strlen(filename) ; i++){
+            filename[i - 1] = filename[i];
+        }
+        filename[strlen(filename) - 1] = '\0';
+    }
+    //make_copy(filename);
+    char filename2[100];
+    strcpy(filename2, filename);
+    int flag = 0;
+    for (int i = strlen(filename2) - 1 ; i >= 0 ; i--)
+    {
+        if (filename2[i] == '/')
+        {
+            filename2[i + 1] = '.';
+            flag = 1;
+            break;
+        }
+        if (flag == 0) filename2[i + 1] = filename2[i];
+    }
+    FILE *fp;
+    fp = fopen(filename, "r");
+    if (fp == NULL) {printf("File not found\n"); return;}
+    fclose(fp);
+    fp = fopen(filename2, "r");
+    int k, counter = 0;
+    while (1)
+    {
+        k = fgetc(fp);
+        string[counter] = k;
+        if (k == EOF) break;
+        counter++;
+    }
+    fclose(fp);
+    make_copy(filename);
+    FILE *fp2;
+    fp2 = fopen(filename, "w");
+    int c;
+    counter = 0;
+    while (1)
+    {
+        c = string[counter];
+        if (c == EOF) break;
+        fputc(c, fp2); 
+        counter++;
+    }
+    fclose(fp2);
+    return;
+}
+
+
 int main()
 {
     char command[100];
@@ -802,6 +862,7 @@ int main()
         // else if (strcmp(command, "cutstr") == 0) cutstr();
         else if (strcmp(command, "find") == 0) find();
         else if (strcmp(command, "replace") == 0) replace();
+        else if (strcmp(command, "undo") == 0) undo_file();
         else {scanf("%[^\n]", command);printf("Invalid input\n");}
     }
     return 0;
