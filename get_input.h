@@ -115,7 +115,7 @@ void options_find(int *fcount, int *fat, int *fbyword, int *fall, int *flag_op, 
         {
             scanf("%c", &vc);
             if (vc == '\n') return;
-            if (scanf("--%s", option) == 0) return;
+            if (scanf("-%s", option) == 0) return;
             if (strcmp(option, "count") == 0) (*fcount) = 1;
             else if (strcmp(option,"at") == 0) {(*fat) = 1; scanf("%d", num_at);}
             else if (strcmp(option, "byword") == 0) (*fbyword) = 1;
@@ -130,7 +130,7 @@ void options_find(int *fcount, int *fat, int *fbyword, int *fall, int *flag_op, 
         while (1)
         {
             if (vc == '\n') return;
-            if (scanf("--%s", option) == 0) return;
+            if (scanf("-%s", option) == 0) return;
             if (strcmp(option, "count") == 0) (*fcount) = 1;
             else if (strcmp(option,"at") == 0) {(*fat) = 1; scanf("%d", num_at);}
             else if (strcmp(option, "byword") == 0) (*fbyword) = 1;
@@ -142,4 +142,44 @@ void options_find(int *fcount, int *fat, int *fbyword, int *fall, int *flag_op, 
     }
 }
 
+void empty(char *s)
+{
+    for (int i = 0 ; i < MAX_VAL ; i++) s[i] = '\0';
+    return;
+}
 
+int getting_cmp(FILE *fpr1, FILE *fpr2, char *input1, char *input2)
+{
+    empty(input1);
+    empty(input2);
+    char c1, c2;
+    int counter1 = 0, counter2 = 0;
+    int check = 0;
+    while (1)
+    {
+        c1 = fgetc(fpr1);
+        if (c1 == '\n') {
+            c1 = fgetc(fpr1);
+            if (c1 == EOF) check+=1;
+            fseek(fpr1, -1, SEEK_CUR);
+            break;
+        }
+        if (c1 == EOF) {check += 1;break;}
+        input1[counter1] = c1;
+        counter1++;
+    }
+    while (1)
+    {
+        c2 = fgetc(fpr2);
+        if (c2 == '\n') {
+            c2 = fgetc(fpr2);
+            if (c2 == EOF) check+=2;
+            fseek(fpr2, -1, SEEK_CUR);
+            break;
+        }
+        if (c2 == EOF) {check += 2;break;}
+        input2[counter2] = c2;
+        counter2++;
+    }
+    return check;
+}

@@ -155,9 +155,9 @@ void removestr()
     getting(filename);
     scanf(" --%s", option);
     scanf(" %d:%d", &line, &start);
-    scanf(" --%s", option);
+    scanf(" -%s", option);
     scanf(" %d", &sz);
-    scanf(" --%s", option);
+    scanf(" -%s", option);
     if (filename[0] == '/'){
         for (ll i = 1 ; i < strlen(filename) ; i++){
             filename[i - 1] = filename[i];
@@ -214,9 +214,9 @@ void copystr()
     getting(filename);
     scanf(" --%s", option);
     scanf(" %d:%d", &line, &start);
-    scanf(" --%s", option);
+    scanf(" -%s", option);
     scanf(" %d", &sz);
-    scanf(" --%s", option);
+    scanf(" -%s", option);
     if (filename[0] == '/'){
         for (ll i = 1 ; i < strlen(filename) ; i++){
             filename[i - 1] = filename[i];
@@ -350,9 +350,9 @@ void cutstr()
     getting(filename);
     scanf(" --%s", option);
     scanf(" %d:%d", &line, &start);
-    scanf(" --%s", option);
+    scanf(" -%s", option);
     scanf(" %d", &sz);
-    scanf(" --%s", option);
+    scanf(" -%s", option);
     if (filename[0] == '/'){
         for (ll i = 1 ; i < strlen(filename) ; i++){
             filename[i - 1] = filename[i];
@@ -844,6 +844,79 @@ void undo_file()
     return;
 }
 
+void compare()
+{
+    char filename1[MAX_VAL], filename2[MAX_VAL];
+    scanf("%c", &vc);
+    getting(filename1);
+    scanf("%c", &vc);
+    getting(filename2);
+    if (filename1[0] == '/'){
+        for (ll i = 1 ; i < strlen(filename1) ; i++){
+            filename1[i - 1] = filename1[i];
+        }
+        filename1[strlen(filename1) - 1] = '\0';
+    }
+    if (filename2[0] == '/'){
+        for (ll i = 1 ; i < strlen(filename2) ; i++){
+            filename2[i - 1] = filename2[i];
+        }
+        filename2[strlen(filename2) - 1] = '\0';
+    }
+    FILE *fpr1, *fpr2;
+    fpr1 = fopen(filename1, "r");
+    fpr2 = fopen(filename2, "r");
+    if (fpr1 == NULL || fpr2 == NULL) {printf("File not found\n"); return;}
+    char string1[MAX_VAL], string2[MAX_VAL];
+    int line_num = 0, t;
+    while (1)
+    {
+        line_num++;
+        t = getting_cmp(fpr1, fpr2, string1, string2);
+        if (strcmp(string1, string2) != 0)
+        {
+            printf("=============#%d==============\n", line_num);
+            printf("%s\n%s\n", string1, string2);
+        }
+        if (t == 3) break;
+        if (t == 1)
+        {
+            int start = line_num + 1;
+            int c, counter = 0;
+            empty(string2);
+            while (1)
+            {
+                c = fgetc(fpr2);
+                if (c == '\n') line_num++;
+                if (c == EOF) break;
+                string2[counter] = c;
+                counter++;
+            }
+            printf(">>>>>>>>>>>>#%d-#%d>>>>>>>>>>>>\n", start, line_num);
+            printf("%s", string2);
+            break;
+        }
+        if (t == 2)
+        {
+            int start = line_num + 1;
+            int c, counter = 0;
+            empty(string1);
+            while (1)
+            {
+                c = fgetc(fpr1);
+                if (c == '\n') line_num++;
+                if (c == EOF) break;
+                string1[counter] = c;
+                counter++;
+            }
+            printf("<<<<<<<<<<<<#%d-#%d<<<<<<<<<<<<\n", start, line_num);
+            printf("%s", string1);
+            break;
+        }
+    }
+    fclose(fpr1);
+    fclose(fpr2);
+}
 
 int main()
 {
@@ -863,6 +936,7 @@ int main()
         else if (strcmp(command, "find") == 0) find();
         else if (strcmp(command, "replace") == 0) replace();
         else if (strcmp(command, "undo") == 0) undo_file();
+        else if (strcmp(command, "compare") == 0) compare();
         else {scanf("%[^\n]", command);printf("Invalid input\n");}
     }
     return 0;
