@@ -160,11 +160,11 @@ int getting_cmp(FILE *fpr1, FILE *fpr2, char *input1, char *input2)
         c1 = fgetc(fpr1);
         if (c1 == '\n') {
             c1 = fgetc(fpr1);
-            if (c1 == EOF) check+=1;
+            if (feof(fpr1)) check+=1;
             fseek(fpr1, -1, SEEK_CUR);
             break;
         }
-        if (c1 == EOF) {check += 1;break;}
+        if (feof(fpr1)) {check += 1;break;}
         input1[counter1] = c1;
         counter1++;
     }
@@ -173,11 +173,11 @@ int getting_cmp(FILE *fpr1, FILE *fpr2, char *input1, char *input2)
         c2 = fgetc(fpr2);
         if (c2 == '\n') {
             c2 = fgetc(fpr2);
-            if (c2 == EOF) check+=2;
+            if (feof(fpr2)) check+=2;
             fseek(fpr2, -1, SEEK_CUR);
             break;
         }
-        if (c2 == EOF) {check += 2;break;}
+        if (feof(fpr2)) {check += 2;break;}
         input2[counter2] = c2;
         counter2++;
     }

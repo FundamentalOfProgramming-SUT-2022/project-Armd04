@@ -128,3 +128,34 @@ void make_copy(char *filename)
     fclose(fp2);
     return;
 }
+
+void get_a_line(char *filename, int line, char *output)
+{
+    empty(output);
+    FILE *fp;
+    fp = fopen(filename, "r");
+    char string[MAX_VAL];
+    empty(string);
+    int counter = 0, c, line_num = 1;
+    while (1)
+    {
+        c = fgetc(fp);
+        if (feof(fp)) break;
+        if (c == '\n')
+        {
+            if (line_num == line){
+                strcpy(output, string);
+                return;
+            }
+            line_num++;
+            empty(string);
+            counter = 0;
+        }
+        else
+        {
+            string[counter] = c;
+            counter++;
+        }
+    }
+    return;
+}

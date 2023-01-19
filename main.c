@@ -918,6 +918,76 @@ void compare()
     fclose(fpr2);
 }
 
+void grep()
+{
+    char option[100], text[MAX_VAL], string[MAX_VAL], filename[MAX_VAL];
+    char filenames[10][MAX_VAL];
+    int flag_op;
+    scanf(" --%s", option);
+    scanf("%c", &vc);
+    getting(text);
+    scanf(" --%s", option);
+    scanf("%c", &vc);
+    FILE *fpr;
+    int counter_files = 0, f_c = 0, f_l = 0, num_match = 0;
+    while (vc != '\n')
+    {
+        flag_op = getting_find(filename);
+        if (filename[0] == '-')
+        {
+            if (flag_op == -1) {printf("Invalid input\n"); return;}
+            if (flag_op == 1) {printf("Invalid option\n"); scanf("%[^\n]", option); return;}
+            if (strcmp(filename, "-c") == 0) {f_c = 1; break;}
+            else if (strcmp(filename, "-l") == 0) {f_l = 1; break;}
+            else {printf("Invalid option\n"); return;}
+        }
+        if (filename[0] == '/'){
+            for (ll i = 1 ; i < strlen(filename) ; i++){
+                filename[i - 1] = filename[i];
+            }
+            filename[strlen(filename) - 1] = '\0';
+        }
+        strcpy(filenames[counter_files], filename);
+        counter_files++;
+        if (flag_op == 0) break;
+        if (flag_op == -1) scanf("%c", &vc);
+    }
+    for (int i = 0 ; i < counter_files ; i++)
+    {
+        fpr = fopen(filenames[i], "r");
+        empty(string);
+        int c, counter = 0;
+        while (1)
+        {
+            c = fgetc(fpr);
+            if (feof(fpr)) break;
+            string[counter] = (char)c;
+            counter++;
+        }
+        int flag_check = 1;
+        int line_num = 1, prev_line_num = 0;
+        for (int j = 0 ; j <= strlen(string) - strlen(text) ; j++)
+        {
+            if (string[j] == '\n') line_num++;
+            flag_check = 1;
+            for (int k = j ; k < j + strlen(text) ; k++)
+            {
+                if (string[k] != text[k - j]) {flag_check = 0; break;}
+            }
+            if (flag_check == 1)
+            {
+                if (f_c == 0 && f_l == 0 && line_num != prev_line_num) {char output[MAX_VAL]; get_a_line(filenames[i], line_num, output);
+                printf("%s: %s\n", filenames[i], output); prev_line_num = line_num;}
+                if (f_c == 0 && f_l == 1) {printf("%s\n", filenames[i]); break;}
+                if (f_c == 1) num_match++;
+            }
+        }
+        fclose(fpr);
+    }
+    if (f_c == 1) printf("%d\n", num_match);
+    return;
+}
+
 int main()
 {
     char command[100];
@@ -937,6 +1007,7 @@ int main()
         else if (strcmp(command, "replace") == 0) replace();
         else if (strcmp(command, "undo") == 0) undo_file();
         else if (strcmp(command, "compare") == 0) compare();
+        else if (strcmp(command, "grep") == 0) grep();
         else {scanf("%[^\n]", command);printf("Invalid input\n");}
     }
     return 0;
