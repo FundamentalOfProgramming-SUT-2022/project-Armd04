@@ -988,6 +988,63 @@ void grep()
     return;
 }
 
+void closing_pair()
+{
+    char filename[MAX_VAL], option[100];
+    scanf(" --%s", option);
+    scanf("%c", &vc);
+    getting(filename);
+    if (filename[0] == '/'){
+        for (ll i = 1 ; i < strlen(filename) ; i++){
+            filename[i - 1] = filename[i];
+        }
+        filename[strlen(filename) - 1] = '\0';
+    }
+    FILE *fpr, *fp;
+    fpr = fopen(filename, "r");
+    int c, counter_pair = 0;
+    while (1)
+    {
+        c = fgetc(fpr);
+        if (feof(fpr)) break;
+        if (c == '{') counter_pair++;
+        else if (c == '}') counter_pair--;
+    }
+    fclose(fpr);
+    if (counter_pair != 0) return;
+    int start = 0 , end = 0, prev_start = MAX_VAL, prev_end[100], sz = -1;
+    for (int i = 0 ; i < 100 ; i++) prev_end[i] = -1;
+    while (1)
+    {
+        fpr = fopen(filename, "r");
+        printf("Ghabl:\n");
+        while (1)
+        {
+            c = fgetc(fpr);
+            if (feof(fpr)) break;
+            printf("%c", c);
+        }
+        fclose(fpr);
+        printf("\n\n");
+        sz++;
+        int check = first_last(filename, &start, &end, &prev_start, prev_end, &sz);
+        if (check == 0) break;
+        printf("%d %d\n", start, end);
+        fix_indent(filename, start, end, &prev_start, prev_end, sz);
+        fpr = fopen(filename, "r");
+        printf("Baad:\n");
+        while (1)
+        {
+            c = fgetc(fpr);
+            if (feof(fpr)) break;
+            printf("%c", c);
+        }
+        fclose(fpr);
+        printf("\n\n");
+    }
+    return;
+}
+
 int main()
 {
     char command[100];
@@ -1008,6 +1065,7 @@ int main()
         else if (strcmp(command, "undo") == 0) undo_file();
         else if (strcmp(command, "compare") == 0) compare();
         else if (strcmp(command, "grep") == 0) grep();
+        else if (strcmp(command, "auto-indent") == 0) closing_pair();
         else {scanf("%[^\n]", command);printf("Invalid input\n");}
     }
     return 0;
