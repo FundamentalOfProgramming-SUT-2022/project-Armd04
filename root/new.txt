@@ -1,1 +1,6 @@
-Hello khoobi Hello khoda hafez khoda not not not.
+int main {
+    Hello {
+        howareyou
+    }
+    blahblah
+}

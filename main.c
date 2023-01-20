@@ -1012,36 +1012,135 @@ void closing_pair()
     }
     fclose(fpr);
     if (counter_pair != 0) return;
-    int start = 0 , end = 0, prev_start = MAX_VAL, prev_end[100], sz = -1;
-    for (int i = 0 ; i < 100 ; i++) prev_end[i] = -1;
+    char string[MAX_VAL], string2[MAX_VAL];
+    int level = 0, counter = 0, counter2 = 0;
+    fpr = fopen(filename, "r");
     while (1)
     {
-        fpr = fopen(filename, "r");
-        printf("Ghabl:\n");
-        while (1)
-        {
-            c = fgetc(fpr);
-            if (feof(fpr)) break;
-            printf("%c", c);
-        }
-        fclose(fpr);
-        printf("\n\n");
-        sz++;
-        int check = first_last(filename, &start, &end, &prev_start, prev_end, &sz);
-        if (check == 0) break;
-        printf("%d %d\n", start, end);
-        fix_indent(filename, start, end, &prev_start, prev_end, sz);
-        fpr = fopen(filename, "r");
-        printf("Baad:\n");
-        while (1)
-        {
-            c = fgetc(fpr);
-            if (feof(fpr)) break;
-            printf("%c", c);
-        }
-        fclose(fpr);
-        printf("\n\n");
+        c = fgetc(fpr);
+        if (feof(fpr)) break;
+        string[counter] = c;
+        counter++;
     }
+    fclose(fpr);
+    int index = 0;
+    while (1)
+    {
+        if (index >= counter) break;
+        if (string[index] == '{' && string[index + 1] == '}')
+        {
+            string2[counter2] = '{';
+            counter2++;
+            string2[counter2] = '\n';
+            counter2++;
+            for (int i = 0 ; i < 4 * level ; i++) {string2[counter2] = ' '; counter2++;}
+            string2[counter2] = '}';
+            counter2++;
+            index+=2;
+            if (index >= counter) break;
+            if (string[index] != '\n')
+            {
+                string2[counter2] = '\n';
+                counter2++;
+                for (int i = 0 ; i < 4 * level ; i++) {string2[counter2] = ' '; counter2++;}
+            }
+            continue;
+        }
+        if (string[index] == '{')
+        {
+            string2[counter2] = string[index];
+            counter2++;
+            level++;
+            if (string[index + 1] != '\n'){
+                string2[counter2] = '\n';
+                counter2++;
+                for (int i = 0; i < 4 * level ; i++) {string2[counter2] = ' '; counter2++;}
+            }
+        }
+        else if (string[index] == '}')
+        {
+            level--;
+            if (string[index - 1] != '\n' && string[index - 1] != '}')
+            {
+                string2[counter2] = '\n';
+                counter2++;
+                for (int i = 0 ; i < 4 * level ; i++) {string2[counter2] = ' '; counter2++;}
+            }
+            else if (string[index - 1] != '\n' && string[index - 1] == '}')
+            {
+                for (int i = 0 ; i < 4 ; i++) {string2[counter2 - 1] = '\0'; counter2--;}
+            }
+            else if (string[index - 1] == '\n')
+            {
+                for (int i = 0 ; i < 4 ; i++) {string2[counter2 - 1] = '\0'; counter2--;}
+            }
+            string2[counter2] = '}';
+            counter2++;
+            if (index + 1 < counter && string[index + 1] != '\n')
+            {
+                string2[counter2] = '\n';
+                counter2++;
+                for (int i = 0 ; i < 4 * level ; i++) {string2[counter2] = ' '; counter2++;}
+            }
+        }
+        else if (string[index] == '\n' && string2[counter2 - 1] != '\n')
+        {
+            string2[counter2] = '\n';
+            counter2++;
+            for (int i = 0 ; i < 4 * level ; i++) {string2[counter2] = ' '; counter2++;}
+        }
+        else if (string[index] == ' ' && (string2[counter2 - 1 - 4*level] == '\n' || string2[counter2 - 1 - 4 * level] == ' '))
+        {
+
+        }
+        else
+        {
+            string2[counter2] = string[index];
+            counter2++;
+        }
+        index++;
+    }
+    char string3[MAX_VAL], counter3 = 0;
+    index = 0;
+    int flag_space = 1;
+    while (index < counter2)
+    {
+        string3[counter3++] = string2[index];
+        if (string2[index] == '\n' && flag_space == 1)
+        {
+            while (string3[counter3 - 2] != '\n')
+            {
+                string3[counter3 - 2] = '\0';
+                counter3--;
+            }
+            string3[counter3 - 1] = '\0';
+            counter3--;
+        }
+        else if (string2[index] == '\n') flag_space = 1;
+        else if (string2[index] != '\n' &&  string2[index] != ' ') flag_space = 0;
+        index++;
+    }
+    index = 0;
+    while (index < counter3)
+    {
+        if (index > 0 && string3[index] == '{')
+        {
+            int i = index;
+            while (string3[i - 1] == ' ')
+            {
+                string3[i - 1] = '\0';
+                i--;
+            }
+            string3[i] = ' ';
+        }
+        index++;
+    }
+    fp = fopen(filename, "w");
+    for (int i = 0 ; i < counter3 ; i++)
+    {
+        fputc(string3[i], fp);
+    }
+    fclose(fp);
     return;
 }
 
