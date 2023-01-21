@@ -159,3 +159,30 @@ void get_a_line(char *filename, int line, char *output)
     }
     return;
 }
+
+void delete_str(char *s, int n)
+{
+    char s2[MAX_VAL] = {};
+    int k = strlen(s);
+    for (int i = 0 ; i < k ; i++)
+    {
+        if (i < n) s2[i] = s[i];
+        if (i > n) s2[i - 1] = s[i];
+    }
+    strcpy(s, s2);
+    return;
+}
+
+void add_str(char *s, int n, char c)
+{
+    char s2[MAX_VAL] = {};
+    int k = strlen(s);
+    for (int i = 0 ; i < k + 1 ; i++)
+    {
+        if (i < n) s2[i] = s[i];
+        if (i == n) s2[i] = c;
+        if (i > n) s2[i] = s[i - 1];
+    }
+    strcpy(s, s2);
+    return;
+}

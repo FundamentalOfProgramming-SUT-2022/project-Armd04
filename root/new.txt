@@ -1,6 +1,1 @@
-int main {
-    Hello {
-        howareyou
-    }
-    blahblah
-}
+int main    {if (f == 0){printf("Hello");}}

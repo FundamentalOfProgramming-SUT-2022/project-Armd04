@@ -5,6 +5,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 //#include <windows.h>
+#include <dirent.h>
 #include "help_func.h"
 
 #define ll long long int
@@ -1000,8 +1001,10 @@ void closing_pair()
         }
         filename[strlen(filename) - 1] = '\0';
     }
+    make_copy(filename);
     FILE *fpr, *fp;
     fpr = fopen(filename, "r");
+    if (fpr == NULL) {printf("File not found\n"); return;}
     int c, counter_pair = 0;
     while (1)
     {
@@ -1110,10 +1113,12 @@ void closing_pair()
         {
             while (string3[counter3 - 2] != '\n')
             {
-                string3[counter3 - 2] = '\0';
+                // string3[counter3 - 2] = '\0';
+                delete_str(string3, counter3 - 2);
                 counter3--;
             }
-            string3[counter3 - 1] = '\0';
+            // string3[counter3 - 1] = '\0';
+            delete_str(string3, counter3 - 1);
             counter3--;
         }
         else if (string2[index] == '\n') flag_space = 1;
@@ -1121,17 +1126,22 @@ void closing_pair()
         index++;
     }
     index = 0;
+    int non_space = 0;
     while (index < counter3)
     {
-        if (index > 0 && string3[index] == '{')
+        if (string3[index] == '\n') non_space = 0;
+        else if (string3[index] != ' ' && string3[index] != '{') non_space = 1;
+        if (index > 0 && string3[index] == '{' && non_space == 1)
         {
             int i = index;
             while (string3[i - 1] == ' ')
             {
-                string3[i - 1] = '\0';
+                // string3[i - 1] = '\0';
+                delete_str(string3, i - 1);
+                counter3--;
                 i--;
             }
-            string3[i] = ' ';
+            {add_str(string3, i, ' '); counter3++;}
         }
         index++;
     }
@@ -1142,6 +1152,42 @@ void closing_pair()
     }
     fclose(fp);
     return;
+}
+
+void tree(char basePath[], const int root, const int depth)
+{
+    if (root >  2 * depth) return;
+    int i;
+    char path[1000];
+    struct dirent *dp;
+    DIR *dir = opendir(basePath);
+
+    if (!dir)
+        return;
+
+    while ((dp = readdir(dir)) != NULL)
+    {
+        if (strcmp(dp->d_name, ".") != 0 && strcmp(dp->d_name, "..") != 0)
+        {
+            for (i=0; i<root; i++) 
+            {
+                if (i%2 == 0 || i == 0)
+                    printf("%s", "│");
+                else
+                    printf(" ");
+
+            }
+
+            if (dp->d_name[0] != '.') printf("%s%s%s\n", "├", "─", dp->d_name);
+
+            strcpy(path, basePath);
+            strcat(path, "/");
+            strcat(path, dp->d_name);
+            tree(path, root + 2, depth);
+        }
+    }
+
+    closedir(dir);
 }
 
 int main()
@@ -1165,6 +1211,12 @@ int main()
         else if (strcmp(command, "compare") == 0) compare();
         else if (strcmp(command, "grep") == 0) grep();
         else if (strcmp(command, "auto-indent") == 0) closing_pair();
+        else if (strcmp(command, "tree") == 0) 
+        {
+            int depth;
+            scanf("%d", &depth);
+            tree("root", 0, depth);
+        }
         else {scanf("%[^\n]", command);printf("Invalid input\n");}
     }
     return 0;
