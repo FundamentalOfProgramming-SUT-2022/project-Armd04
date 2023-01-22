@@ -4,17 +4,21 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-//#include <windows.h>
 #include <dirent.h>
 #include "help_func.h"
 
 #define ll long long int
 #define MAX_VAL 10000
 
-char vc;
+FILE *fout;
 
+char filenames[MAX_VAL][MAX_VAL];
 
-void files(char path[])
+void get_word(char *input, char *word , int *counter_input, int *counter_word);
+void get_pos(char *word, int *line, int *start);
+int char_to_num(char *s);
+
+void re_files(char path[])
 {
     int k = 0;
     char filename[MAX_VAL] = {}, dir[MAX_VAL] = {};
@@ -25,7 +29,7 @@ void files(char path[])
         if (i == strlen(path)){
             FILE *fp = NULL;
             fp = fopen(dir, "r");
-            if (fp != NULL) {printf("file is already existing\n"); fclose(fp); return;}
+            if (fp != NULL) {fprintf(fout, "%s", "file is already existing\n"); fclose(fp); return;}
             else{
                 fp = fopen(dir, "a");
                 fclose(fp);
@@ -37,26 +41,14 @@ void files(char path[])
     }
 }
 
-void creatfile()
+void re_creatfile(char *path)
 {
-    char option[100];
-    char path[MAX_VAL];
-    scanf(" --%s", option);
-    scanf("%c", &vc);
-    getting(path);
-    if (strcmp(option, "file") == 0){
-        files(path);
-    }
+    re_files(path);
     return;
 }
 
-void cat()
+void re_cat(char *filename)
 {
-    char option[100];
-    char filename[MAX_VAL];
-    scanf(" --%s", option);
-    scanf("%c", &vc);
-    getting(filename);
     if (filename[0] == '/'){
         for (ll i = 1 ; i < strlen(filename) ; i++){
             filename[i - 1] = filename[i];
@@ -65,31 +57,20 @@ void cat()
     }
     FILE *fp;
     fp = fopen(filename, "r");
-    if (fp == NULL){printf("file not found\n"); return;}
+    if (fp == NULL){fprintf(fout, "%s", "file not found\n"); return;}
     int c;
     while(1)
     {
         c = fgetc(fp);
         if(feof(fp)) break;
-        printf("%c", c);
+        fprintf(fout, "%c", c);
     }
     fclose(fp);
     return;
 }
 
-void insertstr()
+void re_insertstr(char *filename, char *message, int line, int start)
 {
-    char option[100];
-    char message[MAX_VAL], filename[MAX_VAL];
-    int line, start;
-    scanf(" --%s", option);
-    scanf("%c", &vc);   
-    getting(filename);
-    scanf(" --%s", option);
-    scanf("%c", &vc);
-    getting(message);
-    scanf(" --%s", option);
-    scanf(" %d:%d", &line, &start);
     if (filename[0] == '/'){
         for (ll i = 1 ; i < strlen(filename) ; i++){
             filename[i - 1] = filename[i];
@@ -99,7 +80,7 @@ void insertstr()
     make_copy(filename);
     FILE *fp, *fpr;
     fpr = fopen(filename, "r");
-    if (fpr == NULL){printf("file not found\n"); return;}
+    if (fpr == NULL){fprintf(fout, "%s", "file not found\n"); return;}
     int position = 0, counter = 0;
     int count = 0;
     char string[MAX_VAL] = {};
@@ -146,19 +127,8 @@ void insertstr()
     return;
 }
 
-void removestr()
+void re_removestr(char *filename, int line, int start, int sz, char *option)
 {
-    char option[100];
-    char filename[MAX_VAL];
-    int sz, line, start;
-    scanf(" --%s", option);
-    scanf("%c", &vc);
-    getting(filename);
-    scanf(" --%s", option);
-    scanf(" %d:%d", &line, &start);
-    scanf(" -%s", option);
-    scanf(" %d", &sz);
-    scanf(" -%s", option);
     if (filename[0] == '/'){
         for (ll i = 1 ; i < strlen(filename) ; i++){
             filename[i - 1] = filename[i];
@@ -168,7 +138,7 @@ void removestr()
     make_copy(filename);
     FILE *fp, *fpr;
     fpr = fopen(filename, "r");
-    if (fpr == NULL){printf("file not found\n"); return;}
+    if (fpr == NULL){fprintf(fout, "%s", "file not found\n"); return;}
     int position = 0, counter = 0;
     int count = 0;
     char string[MAX_VAL] = {};
@@ -188,13 +158,13 @@ void removestr()
     fclose(fpr);
     position += start;
     fp = fopen(filename, "w+");
-    if (strcmp(option, "f") == 0)
+    if (strcmp(option, "-f") == 0)
     {
         int to = position + sz;
         for (int i = 0 ; i < position ; i++) fprintf(fp, "%c", string[i]);
         for (int i = to ; i < strlen(string) ; i++) fprintf(fp, "%c", string[i]);
     }
-    else if (strcmp(option, "b") == 0)
+    else if (strcmp(option, "-b") == 0)
     {
         int from = position - sz;
         for (int i = 0 ; i <= from ; i++) fprintf(fp, "%c", string[i]);
@@ -204,20 +174,59 @@ void removestr()
     return;
 }
 
-/*
-void copystr()
+void re_copy(char *filename, int line, int start, int sz, char *option)
 {
-    char option[100];
-    char filename[MAX_VAL];
-    int sz, line, start;
-    scanf(" --%s", option);
-    scanf("%c", &vc);
-    getting(filename);
-    scanf(" --%s", option);
-    scanf(" %d:%d", &line, &start);
-    scanf(" -%s", option);
-    scanf(" %d", &sz);
-    scanf(" -%s", option);
+    if (filename[0] == '/'){
+        for (ll i = 1 ; i < strlen(filename) ; i++){
+            filename[i - 1] = filename[i];
+        }
+        filename[strlen(filename) - 1] = '\0';
+    }
+    FILE *fpr, *fp_clip;
+    fpr = fopen(filename, "r");
+    if (fpr == NULL){fprintf(fout, "%s", "file not found\n"); return;}
+    int position = 0, counter = 0;
+    int count = 0;
+    char string[MAX_VAL] = {};
+    int c;
+    while(1)
+    {
+        c = fgetc(fpr);
+        if(feof(fpr)) break;
+        if (counter < line  - 1)
+        {
+        if (c == (int)'\n') counter++;
+        position++;
+        }
+    }
+    fclose(fpr);
+    position += start;
+    fpr = fopen(filename, "r");
+    fp_clip = fopen(".clipboard.txt", "w+");
+    fseek(fpr, position, SEEK_SET);
+    if (strcmp(option, "-f") == 0)
+    {
+        for (int i = 0 ; i < sz ; i++)
+        {
+            c = fgetc(fpr);
+            fputc(c, fp_clip);
+        }
+    }
+    else if (strcmp(option, "-b") == 0)
+    {
+        fseek(fpr, -sz + 1, SEEK_CUR);
+        for (int i = 0 ; i < sz ; i++)
+        {
+            c = fgetc(fpr);
+            fputc(c, fp_clip);
+        }
+    }
+    fclose(fpr);
+    fclose(fp_clip);
+}
+
+void re_cut(char *filename, int line, int start, int sz, char *option)
+{
     if (filename[0] == '/'){
         for (ll i = 1 ; i < strlen(filename) ; i++){
             filename[i - 1] = filename[i];
@@ -226,247 +235,45 @@ void copystr()
     }
     FILE *fpr;
     fpr = fopen(filename, "r");
-    if (fpr == NULL){printf("file not found\n"); return;}
-    int position = 0, counter = 0;
-    int count = 0;
-    char string[MAX_VAL] = {};
-    int c;
-    while(1)
-    {
-        c = fgetc(fpr);
-        if(feof(fpr)) break;
-        if (counter < line  - 1)
-        {
-        if (c == (int)'\n') counter++;
-        position++;
-        }
-        count++;
-    }
-    position += start;
-    fseek(fpr, position, SEEK_SET);
-    if (strcmp(option, "f") == 0)
-    {
-        for (int i = 0 ; i < sz ; i++)
-        {
-            c = fgetc(fpr);
-            string[i] = c;
-        }
-    }
-    else if (strcmp(option, "b") == 0)
-    {
-        fseek(fpr, -sz, SEEK_CUR);
-        for (int i = 0 ; i < sz ; i++)
-        {
-            c = fgetc(fpr);
-            string[i] = c;
-        }
-    }
-    const char *string1 = string;
-    OpenClipboard(0);
-    EmptyClipboard();
-    const size_t ln = strlen(string1) + 1;
-    HGLOBAL h = GlobalAlloc(GMEM_MOVEABLE, ln);
-    memcpy(GlobalLock(h), string1, ln);
-    GlobalUnlock(h);
-    SetClipboardData(CF_TEXT, h);
-    CloseClipboard();
+    if (fpr == NULL){fprintf(fout, "%s", "file not found\n"); return;}
     fclose(fpr);
+    re_copy(filename, line, start, sz, option);
+    re_removestr(filename, line, start, sz, option);
 }
 
-void pastestr()
+void re_paste(char *filename, int line, int start)
 {
-    char option[100];
-    char filename[MAX_VAL];
-    int line, start;
-    scanf(" --%s", option);
-    scanf("%c", &vc);
-    getting(filename);
-    scanf(" --%s", option);
-    scanf(" %d:%d", &line, &start);
+    char message[MAX_VAL];
+    int counter_mes = 0;
+    FILE *fp_clip;
+    fp_clip = fopen(".clipboard.txt", "r");
+    int c;
+    while (1)
+    {
+        c = fgetc(fp_clip);
+        if (feof(fp_clip)) break;
+        message[counter_mes] = c;
+        counter_mes++;
+    }
+    fclose(fp_clip);
+    re_insertstr(filename, message, line, start);
+}
+
+void re_find(char *filename, char *message, int fcount, int fat, int fbyword, int fall, int num_at)
+{
+    char string[MAX_VAL] = {};
+    int num_of_words = 1, num_count = 0;
     if (filename[0] == '/'){
         for (ll i = 1 ; i < strlen(filename) ; i++){
             filename[i - 1] = filename[i];
         }
         filename[strlen(filename) - 1] = '\0';
     }
-    OpenClipboard(0);
-    HANDLE in = GetClipboardData(CF_TEXT);
-    strcpy(message, (char *) in);
-    FILE *fp, *fpr;
-    fpr = fopen(filename, "r");
-    if (fpr == NULL){printf("file not found\n"); return;}
-    int position = 0, counter = 0;
-    int count = 0;
-    char string[MAX_VAL] = {};
-    int c;
-    while(1)
-    {
-        c = fgetc(fpr);
-        if(feof(fpr)) break;
-        if (counter < line  - 1)
-        {
-        if (c == (int)'\n') counter++;
-        position++;
-        }
-        string[count] = c;
-        count++;
-    }
-    fclose(fpr);
-    position += start;
-    fp = fopen(filename, "w+");
-    fseek(fp, 0, SEEK_SET);
-    for (int i = 0 ; i < position ; i++){
-        fprintf(fp, "%c", string[i]);
-    }
-    int index = 0;
-    while (index < strlen(message))
-    {
-        if (index < strlen(message) - 1 && message[index] == '\\' && message[index + 1] == 'n'){
-            if (index > 0 && message[index - 1] == '\\') index++;
-            else{
-                fputc('\n', fp);
-                index += 2;
-            }
-        }
-        else{
-            fputc(message[index], fp);
-            index ++;
-        }
-    }
-    for (int i = position ; i < strlen(string) ; i++){
-        fprintf(fp, "%c", string[i]);
-    }
-
-    fclose(fp);
-    return;
-}
-
-void cutstr()
-{
-    char option[100];
-    char filename[MAX_VAL];
-    int sz, line, start;
-    scanf(" --%s", option);
-    scanf("%c", &vc);
-    getting(filename);
-    scanf(" --%s", option);
-    scanf(" %d:%d", &line, &start);
-    scanf(" -%s", option);
-    scanf(" %d", &sz);
-    scanf(" -%s", option);
-    if (filename[0] == '/'){
-        for (ll i = 1 ; i < strlen(filename) ; i++){
-            filename[i - 1] = filename[i];
-        }
-        filename[strlen(filename) - 1] = '\0';
-    }
-    FILE *fpr, *fp;
-    fpr = fopen(filename, "r");
-    if (fpr == NULL){printf("file not found\n"); return;}
-    int position = 0, counter = 0;
-    int count = 0;
-    char string[MAX_VAL] = {};
-    int c;
-    while(1)
-    {
-        c = fgetc(fpr);
-        if(feof(fpr)) break;
-        if (counter < line  - 1)
-        {
-        if (c == (int)'\n') counter++;
-        position++;
-        }
-        count++;
-    }
-    position += start;
-    fseek(fpr, position, SEEK_SET);
-    if (strcmp(option, "f") == 0)
-    {
-        for (int i = 0 ; i < sz ; i++)
-        {
-            c = fgetc(fpr);
-            string[i] = c;
-        }
-    }
-    else if (strcmp(option, "b") == 0)
-    {
-        fseek(fpr, -sz, SEEK_CUR);
-        for (int i = 0 ; i < sz ; i++)
-        {
-            c = fgetc(fpr);
-            string[i] = c;
-        }
-    }
-    const char *string1 = string;
-    OpenClipboard(0);
-    EmptyClipboard();
-    const size_t ln = strlen(string1) + 1;
-    HGLOBAL h = GlobalAlloc(GMEM_MOVEABLE, ln);
-    memcpy(GlobalLock(h), string1, ln);
-    GlobalUnlock(h);
-    SetClipboardData(CF_TEXT, h);
-    CloseClipboard();
-    fclose(fpr);
-    fpr = fopen(filename, "r");
-    if (fpr == NULL){printf("file not found\n"); return;}
-    position = 0;
-    counter = 0;
-    count = 0;
-    strcpy(string, "");
-    while(1)
-    {
-        c = fgetc(fpr);
-        if(feof(fpr)) break;
-        if (counter < line  - 1)
-        {
-        if (c == (int)'\n') counter++;
-        position++;
-        }
-        string[count] = c;
-        count++;
-    }
-    fclose(fpr);
-    fp = fopen(filename, "w+");
-    if (strcmp(option, "f") == 0)
-    {
-        int to = position + sz;
-        for (int i = 0 ; i < position ; i++) fprintf(fp, "%c", string[i]);
-        for (int i = to ; i < strlen(string) ; i++) fprintf(fp, "%c", string[i]);
-    }
-    else if (strcmp(option, "b") == 0)
-    {
-        int from = position - sz;
-        for (int i = 0 ; i <= from ; i++) fprintf(fp, "%c", string[i]);
-        for (int i = position + 1 ; i < strlen(string) ; i++) fprintf(fp, "%c", string[i]);
-    }
-    fclose(fp);
-}
-*/
-
-void find()
-{
-    char option[100], string[MAX_VAL] = {};
-    char message[MAX_VAL], filename[MAX_VAL];
-    int fcount = 0, fat = 0, fbyword = 0, fall = 0, flag_op;
-    int num_of_words = 1, num_at, num_count = 0;
-    scanf(" --%s", option);
-    scanf("%c", &vc);
-    getting(message);
-    scanf(" --%s", option);
-    scanf("%c", &vc);
-    flag_op = getting_find(filename);
-    if (filename[0] == '/'){
-        for (ll i = 1 ; i < strlen(filename) ; i++){
-            filename[i - 1] = filename[i];
-        }
-        filename[strlen(filename) - 1] = '\0';
-    }
-    options_find(&fcount, &fat, &fbyword, &fall, &flag_op, &num_at);
     FILE *fpr;
     fpr = fopen(filename, "r");
-    if (fpr == NULL) {printf("file not found\n"); return;}
-    if (fcount == 1 && fall + fat + fbyword != 0) {printf("Invalid set of option\n"); return;}
-    if (fall == 1 && fat == 1) {printf("Invalid set of options\n"); return;}
+    if (fpr == NULL) {fprintf(fout, "%s", "file not found\n"); return;}
+    if (fcount == 1 && fall + fat + fbyword != 0) {fprintf(fout, "%s", "Invalid set of options\n"); return;}
+    if (fall == 1 && fat == 1) {fprintf(fout, "%s", "Invalid set of options\n"); return;}
     if (fcount == 0 && fat == 0 && fall == 0 && fbyword == 0)
     {
         int c, count = 0;
@@ -487,11 +294,11 @@ void find()
             }
             if (flag == 1){
                 flag2 = 1;
-                printf("%d\n", i);
+                fprintf(fout, "%d\n", i);
                 break;
             }
         }
-        if (flag2 == 0) printf("%d\n", -1);
+        if (flag2 == 0) fprintf(fout, "%d\n", -1);
         return;
     }
     if (fcount == 1)
@@ -516,7 +323,7 @@ void find()
                 num_count++;
             }
         }
-        printf("%d\n", num_count);
+        fprintf(fout, "%d\n", num_count);
         return;
     }
     if (fall == 1)
@@ -542,11 +349,11 @@ void find()
                 }
                 if (flag == 1){
                     flag2 = 1;
-                    printf("%d, ", num_of_words);
+                    fprintf(fout, "%d, ", num_of_words);
                 }
             }
-            if (flag2 == 0) printf("%d", -1);
-            printf("\n");
+            if (flag2 == 0) fprintf(fout, "%d", -1);
+            fprintf(fout, "\n");
             return;
         }
         else
@@ -569,11 +376,11 @@ void find()
                 }
                 if (flag == 1){
                     flag2 = 1;
-                    printf("%d, ", i);
+                    fprintf(fout, "%d, ", i);
                 }
             }
-            if (flag2 == 0) printf("%d", -1);
-            printf("\n");
+            if (flag2 == 0) fprintf(fout, "%d", -1);
+            fprintf(fout, "\n");
             return; 
         }
     }
@@ -598,11 +405,11 @@ void find()
             }
             if (flag == 1){
                 flag2 = 1;
-                printf("%d\n", num_of_words);
+                fprintf(fout, "%d\n", num_of_words);
                 break;
             }
         }
-        if (flag2 == 0) printf("%d\n", -1);
+        if (flag2 == 0) fprintf(fout, "%d\n", -1);
         return;
     }
     if (fat == 1)
@@ -627,10 +434,10 @@ void find()
                 }
                 if (flag == 1){
                     num_count++;
-                    if (num_at == num_count) {printf("%d\n", i); break;}
+                    if (num_at == num_count) {fprintf(fout, "%d\n", i); break;}
                 }
             }
-            if (num_at > num_count) printf("%d\n", -1);
+            if (num_at > num_count) fprintf(fout, "%d\n", -1);
             return; 
         }
         else
@@ -654,42 +461,29 @@ void find()
                 }
                 if (flag == 1){
                     num_count++;
-                    if (num_at == num_count) {printf("%d\n", num_of_words); break;}
+                    if (num_at == num_count) {fprintf(fout, "%d\n", num_of_words); break;}
                 }
             }
-            if (num_at > num_count) printf("%d\n", -1);
+            if (num_at > num_count) fprintf(fout,"%d\n", -1);
             return;
         }
     }
     return;
 }
 
-void replace()
+void re_replace(char *filename, char *message, char *message2, int fat, int fall, int num_at)
 {
-    char option[100];
-    char message[MAX_VAL], message2[MAX_VAL], filename[MAX_VAL], string[MAX_VAL] = {};
-    int fcount = 0, fat = 0, fbyword = 0, fall = 0, flag_op;
-    int num_at, num_count = 0;
-    scanf(" --%s", option);
-    scanf("%c", &vc);
-    getting(message);
-    scanf(" --%s", option);
-    scanf("%c", &vc);
-    getting(message2);
-    scanf(" --%s", option);
-    scanf("%c", &vc);
-    flag_op = getting_find(filename);
+    char string[MAX_VAL] = {};
+    int num_count = 0;
     if (filename[0] == '/'){
         for (ll i = 1 ; i < strlen(filename) ; i++){
             filename[i - 1] = filename[i];
         }
         filename[strlen(filename) - 1] = '\0';
     }
-    options_find(&fcount, &fat, &fbyword, &fall, &flag_op, &num_at);
-    // make_copy(filename);
     FILE *fpr;
     fpr = fopen(filename, "r");
-    if (fall == 1 && fat == 1) {printf("Invalid set of options\n"); return;}
+    if (fall == 1 && fat == 1) {fprintf(fout, "Invalid set of options\n"); return;}
     if (fall == 0 && fat == 0)
     {
         int c, count = 0;
@@ -715,7 +509,7 @@ void replace()
                 break;
             }
         }
-        if (flag2 == 0) printf("Not found\n");
+        if (flag2 == 0) fprintf(fout, "Not found\n");
         return;
     }
     if (fall == 1)
@@ -752,7 +546,7 @@ void replace()
                 fclose(fpr);
             }
         }
-        if (flag2 == 0) printf("Not found\n");
+        if (flag2 == 0) fprintf(fout, "Not found\n");
         return;
     }
     if (fat == 1)
@@ -784,24 +578,20 @@ void replace()
                 }
             }
         }
-        if (flag2 == 0) printf("Not found\n");
+        if (flag2 == 0) fprintf(fout, "Not found\n");
         return;
     }
 }
 
-void undo_file()
+void re_undo_file(char *filename)
 {
-    char filename[MAX_VAL], option[100], string[MAX_VAL] = {'\0'};
-    scanf(" --%s", option);
-    scanf("%c", &vc);
-    getting(filename);
+    char string[MAX_VAL] = {'\0'};
     if (filename[0] == '/'){
         for (ll i = 1 ; i < strlen(filename) ; i++){
             filename[i - 1] = filename[i];
         }
         filename[strlen(filename) - 1] = '\0';
     }
-    //make_copy(filename);
     char filename2[100];
     strcpy(filename2, filename);
     int flag = 0;
@@ -817,7 +607,7 @@ void undo_file()
     }
     FILE *fp;
     fp = fopen(filename, "r");
-    if (fp == NULL) {printf("File not found\n"); return;}
+    if (fp == NULL) {fprintf(fout, "File not found\n"); return;}
     fclose(fp);
     fp = fopen(filename2, "r");
     int k, counter = 0;
@@ -845,13 +635,8 @@ void undo_file()
     return;
 }
 
-void compare()
+void re_compare(char *filename1, char *filename2)
 {
-    char filename1[MAX_VAL], filename2[MAX_VAL];
-    scanf("%c", &vc);
-    getting(filename1);
-    scanf("%c", &vc);
-    getting(filename2);
     if (filename1[0] == '/'){
         for (ll i = 1 ; i < strlen(filename1) ; i++){
             filename1[i - 1] = filename1[i];
@@ -867,7 +652,7 @@ void compare()
     FILE *fpr1, *fpr2;
     fpr1 = fopen(filename1, "r");
     fpr2 = fopen(filename2, "r");
-    if (fpr1 == NULL || fpr2 == NULL) {printf("File not found\n"); return;}
+    if (fpr1 == NULL || fpr2 == NULL) {fprintf(fout, "File not found\n"); return;}
     char string1[MAX_VAL], string2[MAX_VAL];
     int line_num = 0, t;
     while (1)
@@ -876,8 +661,8 @@ void compare()
         t = getting_cmp(fpr1, fpr2, string1, string2);
         if (strcmp(string1, string2) != 0)
         {
-            printf("=============#%d==============\n", line_num);
-            printf("%s\n%s\n", string1, string2);
+            fprintf(fout, "=============#%d==============\n", line_num);
+            fprintf(fout, "%s\n%s\n", string1, string2);
         }
         if (t == 3) break;
         if (t == 1)
@@ -893,8 +678,8 @@ void compare()
                 string2[counter] = c;
                 counter++;
             }
-            printf(">>>>>>>>>>>>#%d-#%d>>>>>>>>>>>>\n", start, line_num);
-            printf("%s", string2);
+            fprintf(fout, ">>>>>>>>>>>>#%d-#%d>>>>>>>>>>>>\n", start, line_num);
+            fprintf(fout, "%s", string2);
             break;
         }
         if (t == 2)
@@ -910,8 +695,8 @@ void compare()
                 string1[counter] = c;
                 counter++;
             }
-            printf("<<<<<<<<<<<<#%d-#%d<<<<<<<<<<<<\n", start, line_num);
-            printf("%s", string1);
+            fprintf(fout, "<<<<<<<<<<<<#%d-#%d<<<<<<<<<<<<\n", start, line_num);
+            fprintf(fout, "%s", string1);
             break;
         }
     }
@@ -919,43 +704,21 @@ void compare()
     fclose(fpr2);
 }
 
-void grep()
+void re_grep(int counter_files, char *text, int f_c, int f_l)
 {
-    char option[100], text[MAX_VAL], string[MAX_VAL], filename[MAX_VAL];
-    char filenames[10][MAX_VAL];
-    int flag_op;
-    scanf(" --%s", option);
-    scanf("%c", &vc);
-    getting(text);
-    scanf(" --%s", option);
-    scanf("%c", &vc);
+    char string[MAX_VAL];
     FILE *fpr;
-    int counter_files = 0, f_c = 0, f_l = 0, num_match = 0;
-    while (vc != '\n')
-    {
-        flag_op = getting_find(filename);
-        if (filename[0] == '-')
-        {
-            if (flag_op == -1) {printf("Invalid input\n"); return;}
-            if (flag_op == 1) {printf("Invalid option\n"); scanf("%[^\n]", option); return;}
-            if (strcmp(filename, "-c") == 0) {f_c = 1; break;}
-            else if (strcmp(filename, "-l") == 0) {f_l = 1; break;}
-            else {printf("Invalid option\n"); return;}
-        }
-        if (filename[0] == '/'){
-            for (ll i = 1 ; i < strlen(filename) ; i++){
-                filename[i - 1] = filename[i];
-            }
-            filename[strlen(filename) - 1] = '\0';
-        }
-        strcpy(filenames[counter_files], filename);
-        counter_files++;
-        if (flag_op == 0) break;
-        if (flag_op == -1) scanf("%c", &vc);
-    }
+    int num_match = 0;
     for (int i = 0 ; i < counter_files ; i++)
     {
+        if (filenames[i][0] == '/'){
+            for (ll j = 1 ; j < strlen(filenames[i]) ; j++){
+                filenames[i][j - 1] = filenames[i][j];
+            }
+            filenames[i][strlen(filenames[i]) - 1] = '\0';
+        }
         fpr = fopen(filenames[i], "r");
+        if (fpr == NULL) {fprintf(fout, "file not found\n"); return;}
         empty(string);
         int c, counter = 0;
         while (1)
@@ -978,23 +741,19 @@ void grep()
             if (flag_check == 1)
             {
                 if (f_c == 0 && f_l == 0 && line_num != prev_line_num) {char output[MAX_VAL]; get_a_line(filenames[i], line_num, output);
-                printf("%s: %s\n", filenames[i], output); prev_line_num = line_num;}
-                if (f_c == 0 && f_l == 1) {printf("%s\n", filenames[i]); break;}
+                fprintf(fout, "%s: %s\n", filenames[i], output); prev_line_num = line_num;}
+                if (f_c == 0 && f_l == 1) {fprintf(fout, "%s\n", filenames[i]); break;}
                 if (f_c == 1) num_match++;
             }
         }
         fclose(fpr);
     }
-    if (f_c == 1) printf("%d\n", num_match);
+    if (f_c == 1) fprintf(fout, "%d\n", num_match);
     return;
 }
 
-void closing_pair()
+void re_closing_pair(char *filename)
 {
-    char filename[MAX_VAL], option[100];
-    scanf(" --%s", option);
-    scanf("%c", &vc);
-    getting(filename);
     if (filename[0] == '/'){
         for (ll i = 1 ; i < strlen(filename) ; i++){
             filename[i - 1] = filename[i];
@@ -1004,7 +763,7 @@ void closing_pair()
     make_copy(filename);
     FILE *fpr, *fp;
     fpr = fopen(filename, "r");
-    if (fpr == NULL) {printf("File not found\n"); return;}
+    if (fpr == NULL) {fprintf(fout, "File not found\n"); return;}
     int c, counter_pair = 0;
     while (1)
     {
@@ -1154,7 +913,7 @@ void closing_pair()
     return;
 }
 
-void tree(char basePath[], const int root, const int depth)
+void re_tree(char basePath[], const int root, const int depth)
 {
     if (root >  2 * depth) return;
     int i;
@@ -1172,54 +931,580 @@ void tree(char basePath[], const int root, const int depth)
             for (i=0; i<root; i++) 
             {
                 if (i%2 == 0 || i == 0)
-                    printf("%s", "│");
+                    fprintf(fout, "%s", "│");
                 else
-                    printf(" ");
+                    fprintf(fout, " ");
 
             }
 
-            if (dp->d_name[0] != '.') printf("%s%s%s\n", "├", "─", dp->d_name);
+            if (dp->d_name[0] != '.') fprintf(fout, "%s%s%s\n", "├", "─", dp->d_name);
 
             strcpy(path, basePath);
             strcat(path, "/");
             strcat(path, dp->d_name);
-            tree(path, root + 2, depth);
+            re_tree(path, root + 2, depth);
         }
     }
 
     closedir(dir);
 }
 
+void re_arman(char *input, char *word, int *counter_input, int *counter_word)
+{
+    char out[MAX_VAL];
+    int counter_out = 0;
+    fclose(fout);
+    fout = fopen(".output.txt", "r");
+    int c;
+    while (1)
+    {
+        c = fgetc(fout);
+        if (feof(fout)) break;
+        out[counter_out] = c;
+        counter_out++;
+    }
+    fclose(fout);
+    fout = fopen(".output.txt", "w");
+    char command[MAX_VAL], option[MAX_VAL];
+    get_word(input, word, &(*counter_input), &(*counter_word));
+    strcpy(command, word);
+    if (strcmp(command, "exit") == 0);
+    else if (strcmp(command , "insertstr") == 0)
+    {
+        char filename[MAX_VAL] = {};
+        int line = -1, start = -1;
+        while ((*counter_input) < strlen(input))
+        {
+            get_word(input, word, &(*counter_input), &(*counter_word));
+            strcpy(option, word);
+            if (strcmp(option, "--file") == 0)
+            {
+                get_word(input, word, &(*counter_input), &(*counter_word));
+                strcpy(filename, word);
+            }
+            else if (strcmp(option, "--pos") == 0)
+            {
+                get_word(input, word, &(*counter_input), &(*counter_word));
+                get_pos(word, &line, &start);
+            }
+            else {fprintf(fout, "Not valid option\n");}
+        }
+        if (line == -1 || start == -1 || strlen(filename) == 0) {fprintf(fout, "Invalid input\n");}
+        re_insertstr(filename, out, line, start);
+    }
+    else if (strcmp(command, "find") == 0)
+    {
+        int fcount = 0, fbyword = 0, fat = 0, fall = 0, num_at = -1;
+        char filename[MAX_VAL] = {};
+        while ((*counter_input) < strlen(input))
+        {
+            get_word(input, word, &(*counter_input), &(*counter_word));
+            strcpy(option, word);
+            if (strcmp(option, "--file") == 0)
+            {
+                get_word(input, word, &(*counter_input), &(*counter_word));
+                strcpy(filename, word);
+            }
+            else if (strcmp(option, "-all") == 0) fall = 1;
+            else if (strcmp(option, "-byword") == 0) fbyword = 1;
+            else if (strcmp(option, "-count") == 0) fcount = 1;
+            else if (strcmp(option, "-at") == 0)
+            {
+                fat = 1;
+                get_word(input, word, &(*counter_input), &(*counter_word));
+                num_at = char_to_num(word);
+            }
+            else {fprintf(fout, "Invalid option\n");}
+        }
+        if (strlen(filename) == 0) {fprintf(fout, "Invalid input\n");}
+        re_find(filename, out, fcount, fat, fbyword, fall, num_at);
+    }
+    else if (strcmp(command, "grep") == 0)
+    {
+        int f_c = 0, f_l = 0;
+        int counter_filenames = 0;
+        while ((*counter_input) < strlen(input))
+        {
+            get_word(input, word, &(*counter_input), &(*counter_word));
+            strcpy(option, word);
+            if (strcmp(option, "--str") == 0);
+            else if (strcmp(option, "-c") == 0) f_c = 1;
+            else if (strcmp(option, "-l") == 0) f_l = 1;
+            else if (strcmp(option, "--files") == 0)
+            {
+                while ((*counter_input) < strlen(input))
+                {
+                    get_word(input, word, &(*counter_input), &(*counter_word));
+                    strcpy(filenames[counter_filenames], word);
+                    counter_filenames++;
+                }
+            }
+            else {fprintf(fout, "Invalid option\n");}
+        }
+        if (counter_filenames == 0) {fprintf(fout, "Invalid input");}
+        re_grep(counter_filenames, out, f_c, f_l);
+    }
+    else {fprintf(fout, "Invalid input\n");}
+    int cout;
+    fclose(fout);
+    fout = fopen(".output.txt", "r");
+    while (1)
+    {
+        cout = fgetc(fout);
+        if (cout == EOF) break;
+        printf("%c", cout);
+    }
+    fclose(fout);
+}
+
+void get_word(char *input, char *word , int *counter_input, int *counter_word)
+{
+    empty(word);
+    (*counter_word) = 0;
+    if (input[*(counter_input)] != '"')
+    {
+        while(1)
+        {
+            if (input[(*counter_input)] == ' ' || input[(*counter_input)] == '\n') {(*counter_input)++; break;}
+            if (input[(*counter_input)] == '\\')
+            {
+                if (input[*(counter_input) + 1] == '\\') {word[(*counter_word)] = '\\'; (*counter_word)++; (*counter_input) += 2;}
+                else if (input[*(counter_input) + 1] == 'n') {word[(*counter_word)] = '\n'; (*counter_word)++; (*counter_input) += 2;}
+                else if (input[*(counter_input) + 1] == '"') {word[(*counter_word)] = '\"'; (*counter_word)++; (*counter_input) += 2;}
+            }
+            else{
+                word[(*counter_word)] = input[(*counter_input)];
+                (*counter_word)++;
+                (*counter_input)++;
+            }
+        }
+    }
+    else
+    {
+        (*counter_input)++;
+        while(1)
+        {
+            if (input[(*counter_input)] == '"') {(*counter_input)+=2; break;}
+            if (input[(*counter_input)] == '\\')
+            {
+                if (input[*(counter_input) + 1] == '\\') {word[(*counter_word)] = '\\'; (*counter_word)++; (*counter_input) += 2;}
+                else if (input[*(counter_input) + 1] == 'n') {word[(*counter_word)] = '\n'; (*counter_word)++; (*counter_input) += 2;}
+                else if (input[*(counter_input) + 1] == '"') {word[(*counter_word)] = '\"'; (*counter_word)++; (*counter_input) += 2;}
+            }
+            else{
+                word[(*counter_word)] = input[(*counter_input)];
+                (*counter_word)++;
+                (*counter_input)++;
+            }
+        }
+    }
+}
+
+int char_to_num(char *s)
+{
+    int sum = 0;
+    for (int i = 0 ; i < strlen(s) ; i++)
+    {
+        sum += ((int) s[i] - (int) '0');
+        sum*=10;
+    }
+    return sum / 10;
+}
+
+void get_pos(char *word, int *line, int *start)
+{
+    char s1[10] = {};
+    int flag = 0;
+    for (int i = 0 ; i < strlen(word) ; i++)
+    {
+        if (word[i] == ':')
+        {
+            (*line) = char_to_num(s1);
+            flag = i + 1;
+            for (int j = 0 ; j < 10 ; j++) {s1[i] = '\0';}
+        }
+        else s1[i - flag] = word[i];
+    }
+    (*start) = char_to_num(s1);
+}
+
 int main()
 {
-    char command[100];
-    int run = 1;
-    while (run)
+    char input[MAX_VAL];
+    int counter_input = 0;
+    char command[MAX_VAL], word[MAX_VAL], option[MAX_VAL];
+    int counter_word = 0, flag_arman = 0;
+    while (1)
     {
-        scanf("%s", command);
-        if (strcmp(command ,"exit") == 0) run = 0;
-        else if (strcmp(command, "createfile") == 0) creatfile();
-        else if (strcmp(command, "cat") == 0) cat();
-        else if (strcmp(command, "insertstr") == 0) insertstr();
-        else if (strcmp(command, "removestr") == 0) removestr();
-        // else if (strcmp(command, "copystr") == 0) copystr();
-        // else if (strcmp(command, "pastestr") == 0) pastestr();
-        // else if (strcmp(command, "cutstr") == 0) cutstr();
-        else if (strcmp(command, "find") == 0) find();
-        else if (strcmp(command, "replace") == 0) replace();
-        else if (strcmp(command, "undo") == 0) undo_file();
-        else if (strcmp(command, "compare") == 0) compare();
-        else if (strcmp(command, "grep") == 0) grep();
-        else if (strcmp(command, "auto-indent") == 0) closing_pair();
-        else if (strcmp(command, "tree") == 0) 
+        flag_arman = 0;
+        fout = fopen(".output.txt", "w");
+        empty(input);
+        counter_input = 0;
+        counter_word = 0;
+        while (1) // getting the input
         {
-            int depth;
-            scanf("%d", &depth);
-            tree("root", 0, depth);
+            scanf("%c", &input[counter_input++]);
+            if (input[counter_input - 1] == '\n') break;
         }
-        else {scanf("%[^\n]", command);printf("Invalid input\n");}
+        counter_input = 0;
+        get_word(input, word, &counter_input, &counter_word);
+        strcpy(command, word);
+        if (strcmp(command, "exit") == 0) break;
+        else if (strcmp(command, "createfile") == 0)
+        {
+            get_word(input, word, &counter_input, &counter_word);
+            strcpy(option, word);
+            if (strcmp(option, "--file") == 0)
+            {
+                get_word(input, word, &counter_input, &counter_word);
+                re_creatfile(word);
+            }
+        }
+        else if (strcmp(command, "cat") == 0)
+        {
+            get_word(input, word, &counter_input, &counter_word);
+            strcpy(option, word);
+            if (strcmp(option, "--file") == 0)
+            {
+                get_word(input, word, &counter_input, &counter_word);
+                re_cat(word);
+            }
+            while (counter_input < strlen(input))
+            {
+                get_word(input, word, &counter_input, &counter_word);
+                if (strcmp(word, "=D") == 0)
+                {
+                    flag_arman = 1;
+                    re_arman(input, word, &counter_input, &counter_word);
+                }
+            }
+        }
+        else if (strcmp(command, "insertstr") == 0)
+        {
+            char filename[MAX_VAL] = {}, message[MAX_VAL] = {};
+            int line = -1, start = -1;
+            while (counter_input < strlen(input))
+            {
+                get_word(input, word, &counter_input, &counter_word);
+                strcpy(option, word);
+                if (strcmp(option, "--file") == 0)
+                {
+                    get_word(input, word, &counter_input, &counter_word);
+                    strcpy(filename, word);
+                }
+                else if (strcmp(option, "--str") == 0)
+                {
+                    get_word(input, word, &counter_input, &counter_word);
+                    strcpy(message, word);
+                }
+                else if (strcmp(option, "--pos") == 0)
+                {
+                    get_word(input, word, &counter_input, &counter_word);
+                    get_pos(word, &line, &start);
+                }
+                else {fprintf(fout, "Not valid option\n");}
+            }
+            if (line == -1 || start == -1 || strlen(filename) == 0 || strlen(message) == 0) {fprintf(fout, "Invalid input\n"); continue;}
+            re_insertstr(filename, message, line, start);
+        }
+        else if (strcmp(command, "removestr") == 0)
+        {
+            char filename[MAX_VAL], op[5];
+            int line = -1, sz = -1, start = -1;
+            while (counter_input < strlen(input))
+            {
+                get_word(input, word, &counter_input, &counter_word);
+                strcpy(option, word);
+                if (strcmp(option, "--file") == 0)
+                {
+                    get_word(input, word, &counter_input, &counter_word);
+                    strcpy(filename, word);
+                }
+                else if (strcmp(option, "--pos") == 0)
+                {
+                    get_word(input, word, &counter_input, &counter_word);
+                    get_pos(word, &line, &start);
+                }
+                else if (strcmp(option, "-size") == 0)
+                {
+                    get_word(input, word, &counter_input, &counter_word);
+                    sz = char_to_num(word);
+                }
+                else if (strcmp(option, "-f") == 0 || strcmp(option, "-b") == 0)
+                {
+                    strcpy(op, option);
+                }
+                else {fprintf(fout, "Not valid option\n");}
+            }
+            if (line == -1 || start == -1 || sz == -1 || strlen(filename) == 0 || strlen(op) == 0) {fprintf(fout, "Invalid input\n"); continue;}
+            re_removestr(filename, line, start, sz, op);
+        }
+        else if (strcmp(command, "undo") == 0)
+        {
+            get_word(input, word, &counter_input, &counter_word);
+            strcpy(option, word);
+            if (strcmp(option, "--file") == 0)
+            {
+                get_word(input, word, &counter_input, &counter_word);
+                re_undo_file(word);
+            }
+        }
+        else if (strcmp(command, "tree") == 0)
+        {
+            get_word(input, word, &counter_input, &counter_word);
+            re_tree("root", 0, char_to_num(word));
+            while (counter_input < strlen(input))
+            {
+                get_word(input, word, &counter_input, &counter_word);
+                if (strcmp(word, "=D") == 0)
+                {
+                    flag_arman = 1;
+                    re_arman(input, word, &counter_input, &counter_word);
+                }
+            }
+        }
+        else if (strcmp(command, "compare") == 0)
+        {
+            char filename1[MAX_VAL], filename2[MAX_VAL];
+            get_word(input, word, &counter_input, &counter_word);
+            strcpy(filename1, word);
+            get_word(input, word, &counter_input, &counter_word);
+            strcpy(filename2, word);
+            re_compare(filename1, filename2);
+            while (counter_input < strlen(input))
+            {
+                get_word(input, word, &counter_input, &counter_word);
+                if (strcmp(word, "=D") == 0)
+                {
+                    flag_arman = 1;
+                    re_arman(input, word, &counter_input, &counter_word);
+                }
+            }
+        }
+        else if (strcmp(command, "auto-indent") == 0)
+        {
+            get_word(input, word, &counter_input, &counter_word);
+            re_closing_pair(word);
+        }
+        else if (strcmp(command, "find") == 0)
+        {
+            int fcount = 0, fbyword = 0, fat = 0, fall = 0, num_at = -1;
+            char filename[MAX_VAL] = {}, message[MAX_VAL] = {};
+            while (counter_input < strlen(input))
+            {
+                get_word(input, word, &counter_input, &counter_word);
+                strcpy(option, word);
+                if (strcmp(option, "--file") == 0)
+                {
+                    get_word(input, word, &counter_input, &counter_word);
+                    strcpy(filename, word);
+                }
+                else if (strcmp(option, "--str") == 0)
+                {
+                    get_word(input, word, &counter_input, &counter_word);
+                    strcpy(message, word);
+                }
+                else if (strcmp(option, "-all") == 0) fall = 1;
+                else if (strcmp(option, "-byword") == 0) fbyword = 1;
+                else if (strcmp(option, "-count") == 0) fcount = 1;
+                else if (strcmp(option, "-at") == 0)
+                {
+                    fat = 1;
+                    get_word(input, word, &counter_input, &counter_word);
+                    num_at = char_to_num(word);
+                }
+                else {fprintf(fout, "Invalid option\n");}
+            }
+            if (strlen(filename) == 0 || strlen(message) == 0) {fprintf(fout, "Invalid input\n"); continue;}
+            re_find(filename, message, fcount, fat, fbyword, fall, num_at);
+            while (counter_input < strlen(input))
+            {
+                get_word(input, word, &counter_input, &counter_word);
+                if (strcmp(word, "=D") == 0)
+                {
+                    flag_arman = 1;
+                    re_arman(input, word, &counter_input, &counter_word);
+                }
+            }
+        }
+        else if (strcmp(command, "replace") == 0)
+        {
+            int fall = 0, fat = 0, num_at = -1;
+            char filename[MAX_VAL] = {}, message1[MAX_VAL] = {}, message2[MAX_VAL] = {};
+            while (counter_input < strlen(input))
+            {
+                get_word(input, word, &counter_input, &counter_word);
+                strcpy(option, word);
+                if (strcmp(option, "--file") == 0)
+                {
+                    get_word(input, word, &counter_input, &counter_word);
+                    strcpy(filename, word);
+                }
+                else if (strcmp(option, "--str1") == 0)
+                {
+                    get_word(input, word, &counter_input, &counter_word);
+                    strcpy(message1, word);
+                }
+                else if (strcmp(option, "--str2") == 0)
+                {
+                    get_word(input, word, &counter_input, &counter_word);
+                    strcpy(message2, word);
+                }
+                else if (strcmp(option, "-all") == 0) fall = 1;
+                else if (strcmp(option, "-at") == 0)
+                {
+                    fat = 1;
+                    get_word(input, word, &counter_input, &counter_word);
+                    num_at = char_to_num(word);
+                }
+                else {fprintf(fout, "Invalid option\n");}
+            }
+            if (strlen(filename) == 0 || strlen(message1) == 0 || strlen(message2) == 0) {fprintf(fout, "Invalid input\n"); continue;}
+            re_replace(filename, message1, message2, fat, fall, num_at);
+            while (counter_input < strlen(input))
+            {
+                get_word(input, word, &counter_input, &counter_word);
+                if (strcmp(word, "=D") == 0)
+                {
+                    flag_arman = 1;
+                    re_arman(input, word, &counter_input, &counter_word);
+                }
+            }
+        }
+        else if (strcmp(command, "grep") == 0)
+        {
+            int f_c = 0, f_l = 0;
+            char message[MAX_VAL];
+            int counter_filenames = 0;
+            while (counter_input < strlen(input))
+            {
+                get_word(input, word, &counter_input, &counter_word);
+                strcpy(option, word);
+                if (strcmp(option, "--str") == 0)
+                {
+                    get_word(input, word, &counter_input, &counter_word);
+                    strcpy(message, word);
+                }
+                else if (strcmp(option, "-c") == 0) f_c = 1;
+                else if (strcmp(option, "-l") == 0) f_l = 1;
+                else if (strcmp(option, "--files") == 0)
+                {
+                    while (counter_input < strlen(input))
+                    {
+                        get_word(input, word, &counter_input, &counter_word);
+                        strcpy(filenames[counter_filenames], word);
+                        counter_filenames++;
+                    }
+                }
+                else {fprintf(fout, "Invalid option\n");}
+            }
+            if (strlen(message) == 0 || counter_filenames == 0) {fprintf(fout, "Invalid input"); continue;}
+            re_grep(counter_filenames, message, f_c, f_l);
+            while (counter_input < strlen(input))
+            {
+                get_word(input, word, &counter_input, &counter_word);
+                if (strcmp(word, "=D") == 0)
+                {
+                    flag_arman = 1;
+                    re_arman(input, word, &counter_input, &counter_word);
+                }
+            }
+        }
+        else if (strcmp(command, "copystr") == 0)
+        {
+            char filename[MAX_VAL], op[MAX_VAL];
+            int line = -1, start = -1, sz = -1;
+            while (counter_input < strlen(input))
+            {
+                get_word(input, word, &counter_input, &counter_word);
+                strcpy(option, word);
+                if (strcmp(option, "--file") == 0)
+                {
+                    get_word(input, word, &counter_input, &counter_word);
+                    strcpy(filename, word);
+                }
+                else if (strcmp(option, "--pos") == 0)
+                {
+                    get_word(input, word, &counter_input, &counter_word);
+                    get_pos(word, &line, &start);
+                }
+                else if (strcmp(option, "-size") == 0)
+                {
+                    get_word(input, word, &counter_input, &counter_word);
+                    sz = char_to_num(word);
+                }
+                else if (strcmp(option, "-f") == 0 || strcmp(option, "-b") == 0) strcpy(op, option);
+                else {fprintf(fout, "Invalid option\n");}
+            }
+            if (line == -1 || start == -1 || strlen(filename) == 0 || strlen(op) == 0) {fprintf(fout, "Invalid input\n"); continue;}
+            re_copy(filename, line, start, sz, op);
+        }
+        else if (strcmp(command, "cutstr") == 0)
+        {
+            char filename[MAX_VAL], op[MAX_VAL];
+            int line = -1, start = -1, sz = -1;
+            while (counter_input < strlen(input))
+            {
+                get_word(input, word, &counter_input, &counter_word);
+                strcpy(option, word);
+                if (strcmp(option, "--file") == 0)
+                {
+                    get_word(input, word, &counter_input, &counter_word);
+                    strcpy(filename, word);
+                }
+                else if (strcmp(option, "--pos") == 0)
+                {
+                    get_word(input, word, &counter_input, &counter_word);
+                    get_pos(word, &line, &start);
+                }
+                else if (strcmp(option, "-size") == 0)
+                {
+                    get_word(input, word, &counter_input, &counter_word);
+                    sz = char_to_num(word);
+                }
+                else if (strcmp(option, "-f") == 0 || strcmp(option, "-b") == 0) strcpy(op, option);
+                else {fprintf(fout, "Invalid option\n");}
+            }
+            if (line == -1 || start == -1 || strlen(filename) == 0 || strlen(op) == 0) {fprintf(fout, "Invalid input\n"); continue;}
+            re_cut(filename, line, start, sz, op);
+        }
+        else if (strcmp(command, "pastestr") == 0)
+        {
+            char filename[MAX_VAL];
+            int line = -1, start = -1;
+            while (counter_input < strlen(input))
+            {
+                get_word(input, word, &counter_input, &counter_word);
+                strcpy(option, word);
+                if (strcmp(option, "--file") == 0)
+                {
+                    get_word(input, word, &counter_input, &counter_word);
+                    strcpy(filename, word);
+                }
+                else if (strcmp(option, "--pos") == 0)
+                {
+                    get_word(input, word, &counter_input, &counter_word);
+                    get_pos(word, &line, &start);
+                }
+                else {fprintf(fout, "Invalid option\n");}
+            }
+            if (line == -1 || start == -1 || strlen(filename) == 0) {fprintf(fout, "Invalid input\n"); continue;}
+            re_paste(filename, line, start);
+        }
+        else {fprintf(fout, "Invalid input\n");}
+        int cout;
+        if (flag_arman == 0)
+        {
+            fclose(fout);
+            fout = fopen(".output.txt", "r");
+            while (1)
+            {
+                cout = fgetc(fout);
+                if (cout == EOF) break;
+                printf("%c", cout);
+            }
+            fclose(fout);
+        }
     }
     return 0;
 }
-
-

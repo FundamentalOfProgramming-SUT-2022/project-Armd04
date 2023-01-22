@@ -101,7 +101,7 @@ void removestr_u(char *filename, int position, int sz, char *option)
 
 void make_copy(char *filename)
 {
-    char filename2[100];
+    char filename2[MAX_VAL] = {};
     strcpy(filename2, filename);
     int flag = 0;
     for (int i = strlen(filename2) - 1 ; i >= 0 ; i--)
