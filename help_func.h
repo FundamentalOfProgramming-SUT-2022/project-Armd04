@@ -186,3 +186,54 @@ void add_str(char *s, int n, char c)
     strcpy(s, s2);
     return;
 }
+
+void m_unt(char *filename)
+{
+    if (filename[0] == '/'){
+        for (ll i = 1 ; i < strlen(filename) ; i++){
+            filename[i - 1] = filename[i];
+        }
+        filename[strlen(filename) - 1] = '\0';
+    }
+    FILE *fp, *f;
+    fp = fopen(filename, "r");
+    f = fopen(".Untitled.txt", "w");
+    while(1)
+    {
+        vc = fgetc(fp);
+        if (feof(fp)) break;
+        fputc(vc, f);
+    }
+    fclose(f);
+    fclose(fp);
+    return;
+}
+
+int make_save(char *s, char *filename)
+{
+    if (filename[0] == '/'){
+        for (ll i = 1 ; i < strlen(filename) ; i++){
+            filename[i - 1] = filename[i];
+        }
+        filename[strlen(filename) - 1] = '\0';
+    }
+    if (s[0] == '/'){
+        for (ll i = 1 ; i < strlen(s) ; i++){
+            s[i - 1] = s[i];
+        }
+        s[strlen(s) - 1] = '\0';
+    }
+    FILE *f1, *f2;
+    f1 = fopen(s, "r");
+    f2 = fopen(filename, "w");
+    if (f1 == NULL) return 0;
+    while(1)
+    {
+        vc = fgetc(f1);
+        if (feof(f1)) break;
+        fputc(vc, f2);
+    }
+    fclose(f1);
+    fclose(f2);
+    return 1;
+}

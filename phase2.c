@@ -1235,26 +1235,78 @@ int main()
     int counter_word = 0, flag_arman = 0;
     while (1)
     {
+        if (strcmp(address, ".output.txt") == 0)
+        {
+            m_unt(address);
+            strcpy(address, ".Untitled.txt");
+        }
         file_check(address);
         if (mode == 'N')
         {
+            int cx, cy;
+            keypad(win, TRUE);
             flag_arman = 0;
             empty(input);
             counter_input = 0;
             counter_word = 0;
             make_dis(win, 0, 'N', address);
             fout = fopen(".output.txt", "w");
-            wmove(win, LINES - 1, 0);
+            wmove(win, 0, 3);
             char c;
-            while (1)
+            while (1) // checking keyboard inputs
             {
                 noecho();
+                getyx(win, cy, cx);
                 c = wgetch(win);
-                if (c == ':' || c == '\\') {echo(); wprintw(win, ":");break;}
-                if (c == 'i') {echo(); mode = 'I'; break;}
+                if (c == ':' || c == '\\') {wmove(win, LINES - 1, 0);echo(); wprintw(win, ":");break;}
+                else if (c == 'i') {echo(); mode = 'I'; break;}
+                else if (c == 'u') {re_undo_file(address); make_dis(win, 0, mode, address); file_check(address); wmove(win, 0, 3); wrefresh(win);}
+                else if (c == '=')
+                {
+                    re_closing_pair(address);
+                    make_dis(win, 0, mode, address);
+                    file_check(address);
+                    wmove(win, 0, 3);
+                    wrefresh(win);
+                }
+                else if (c == 'k')
+                {
+                    if (cy < LINES - 5 && cy < num_of_lines - 1)cy++;
+                    else if (cy == LINES - 5 && cy < num_of_lines - starting_line)
+                    {
+                        starting_line++;
+                        make_dis(win, 0, mode, address);
+                    }
+                    cx = MIN(cx, ends[cy + starting_line - 1] + 3);
+                    wmove(win, cy, cx);
+                    wrefresh(win);
+                }
+                else if (c == 'j')
+                {
+                    if (cy > 0) cy--;
+                    else if (cy == 0 && starting_line > 1)
+                    {
+                        starting_line--;
+                        make_dis(win, 0, mode, address);
+                    }
+                    cx = MIN(cx, ends[cy + starting_line - 1] + 3);
+                    wmove(win, cy, cx);
+                    wrefresh(win);
+                }
+                else if (c == 'l')
+                {
+                    if (cx <= ends[cy + starting_line - 1] + 2) cx++;
+                    wmove(win, cy, cx);
+                    wrefresh(win);
+                }
+                else if (c == 'h')
+                {
+                    if (cx > 3) cx--;
+                    wmove(win, cy, cx);
+                    wrefresh(win);
+                }
             }
-            if (mode == 'I') continue;;
-            //refresh();
+            if (mode == 'I') continue;
             wgetstr(win, input);
             strcat(input, "\n");
             refresh();
@@ -1625,6 +1677,27 @@ int main()
                 if (line == -1 || start == -1 || strlen(filename) == 0) {fprintf(fout, "Invalid input\n"); strcpy(address, ".output.txt");continue;}
                 re_paste(filename, line, start);
             }
+            else if (strcmp(command, "open") == 0)
+            {
+                get_word(input, word, &counter_input, &counter_word);
+                if (word[0] == '/'){
+                    for (ll i = 1 ; i < strlen(word) ; i++){
+                        word[i - 1] = word[i];
+                    }
+                    word[strlen(word) - 1] = '\0';
+                }
+                FILE *fpt;
+                fpt = fopen(word, "r");
+                if (fpt == NULL) {fprintf(fout, "File not found\n"); strcpy(address, ".output.txt");}
+                else strcpy(address, word);
+            }
+            else if (strcmp(command, "saveas") == 0)
+            {
+                get_word(input, word, &counter_input, &counter_word);
+                if (make_save(address, word) == 1)fprintf(fout, "Succesfull\n");
+                else fprintf(fout, "Failed\n");
+                strcpy(address, ".output.txt");
+            }
             else {fprintf(fout, "Invalid input\n");strcpy(address, ".output.txt");}
             fclose(fout);
             noecho();
@@ -1639,7 +1712,7 @@ int main()
             make_dis(win, 0, mode, address);
             wmove(win, 0, 3);
             int c;
-            while (1)
+            while (1) // checking keyboard input
             {
                 getyx(win, cy, cx);
                 noecho();
