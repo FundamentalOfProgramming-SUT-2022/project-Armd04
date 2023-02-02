@@ -1,5 +1,5 @@
 root/a1.txt: Salam
 root/a1.txt: Hello Salam world
 root/a1.txt: god bless Salam
-root/a2.txt: Salam
+rot/a2.txt: Salam
 root/a2.txt: khubam Salam Salam
