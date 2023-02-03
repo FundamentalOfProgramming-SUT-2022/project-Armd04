@@ -245,3 +245,36 @@ void swap(int *x, int *y)
     *y = temp;
     return;
 }
+
+void find_line(char *filename, int index, int *line, int *pos)
+{
+    int line_num = 0, pos_num = 0, ind = 0;
+    if (filename[0] == '/'){
+        for (ll i = 1 ; i < strlen(filename) ; i++){
+            filename[i - 1] = filename[i];
+        }
+        filename[strlen(filename) - 1] = '\0';
+    }
+    FILE *fp;
+    fp = fopen(filename, "r");
+    int c;
+    while(1)
+    {
+        c = fgetc(fp);
+        if (feof(fp)) break;
+        if (ind == index)
+        {
+            *line = line_num;
+            *pos = pos_num;
+            return;
+        }
+        pos_num++;
+        if (c == '\n')
+        {
+            pos_num = 0;
+            line_num++;
+        }
+        ind++;
+    }
+    fclose(fp);
+}
