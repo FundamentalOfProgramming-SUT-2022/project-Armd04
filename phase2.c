@@ -14,7 +14,8 @@
 #define MAX(i, j) (i > j)? i: j
 #define MIN(i, j) (i < j)? i: j
 
-char address[MAX_VAL] = "root/test.txt", word_find[MAX_VAL] = {};
+char address[MAX_VAL] = "root/test.txt", word_find[MAX_VAL] = {}, fkadd[MAX_VAL] = {};
+int f_save = 1;
 char mode = 'N';
 int starting_line = 1, ends[MAX_VAL] = {0}, num_of_lines = 0, rx, ry, takey = 0, takex = 3;
 
@@ -25,6 +26,8 @@ char filenames[MAX_VAL][MAX_VAL];
 void get_word(char *input, char *word , int *counter_input, int *counter_word);
 void get_pos(char *word, int *line, int *start);
 int char_to_num(char *s);
+void save_file(char *filename);
+void m_unt(char *filename);
 
 void re_files(char path[])
 {
@@ -37,7 +40,7 @@ void re_files(char path[])
         if (i == strlen(path)){
             FILE *fp = NULL;
             fp = fopen(dir, "r");
-            if (fp != NULL) {fprintf(fout, "%s", "file is already existing\n"); {strcpy(address, ".output.txt"); starting_line = 1;}fclose(fp); return;}
+            if (fp != NULL) {fprintf(fout, "%s", "file is already existing\n"); {save_file(address);f_save = 1;strcpy(address, ".output.txt"); starting_line = 1;}fclose(fp); return;}
             else{
                 fp = fopen(dir, "a");
                 {strcpy(address, dir); starting_line = 1;}
@@ -66,7 +69,7 @@ void re_cat(char *filename)
     }
     FILE *fp;
     fp = fopen(filename, "r");
-    if (fp == NULL){fprintf(fout, "%s", "file not found\n"); {strcpy(address, ".output.txt"); starting_line = 1;}return;}
+    if (fp == NULL){fprintf(fout, "%s", "file not found\n"); {save_file(address);f_save = 1;strcpy(address, ".output.txt"); starting_line = 1;}return;}
     int c;
     while(1)
     {
@@ -89,7 +92,7 @@ void re_insertstr(char *filename, char *message, int line, int start)
     make_copy(filename);
     FILE *fp, *fpr;
     fpr = fopen(filename, "r");
-    if (fpr == NULL){fprintf(fout, "%s", "file not found\n");{strcpy(address, ".output.txt"); starting_line = 1;} return;}
+    if (fpr == NULL){fprintf(fout, "%s", "file not found\n");{save_file(address);f_save = 1;strcpy(address, ".output.txt"); starting_line = 1;} return;}
     int position = 0, counter = 0;
     int count = 0;
     char string[MAX_VAL] = {};
@@ -147,7 +150,7 @@ void re_removestr(char *filename, int line, int start, int sz, char *option)
     make_copy(filename);
     FILE *fp, *fpr;
     fpr = fopen(filename, "r");
-    if (fpr == NULL){fprintf(fout, "%s", "file not found\n"); {strcpy(address, ".output.txt"); starting_line = 1;}return;}
+    if (fpr == NULL){fprintf(fout, "%s", "file not found\n"); {save_file(address);f_save = 1;strcpy(address, ".output.txt"); starting_line = 1;}return;}
     int position = 0, counter = 0;
     int count = 0;
     char string[MAX_VAL] = {};
@@ -193,7 +196,7 @@ void re_copy(char *filename, int line, int start, int sz, char *option)
     }
     FILE *fpr, *fp_clip;
     fpr = fopen(filename, "r");
-    if (fpr == NULL){fprintf(fout, "%s", "file not found\n"); {strcpy(address, ".output.txt"); starting_line = 1;}return;}
+    if (fpr == NULL){fprintf(fout, "%s", "file not found\n"); {save_file(address);f_save = 1;strcpy(address, ".output.txt"); starting_line = 1;}return;}
     int position = 0, counter = 0;
     int count = 0;
     char string[MAX_VAL] = {};
@@ -211,7 +214,7 @@ void re_copy(char *filename, int line, int start, int sz, char *option)
     fclose(fpr);
     position += start;
     fpr = fopen(filename, "r");
-    if (strcmp(option, "-b") == 0) if (position - sz + 1 < 0) {fprintf(fout, "Out of bounds\n"); {strcpy(address, ".output.txt"); starting_line = 1;}return;}
+    if (strcmp(option, "-b") == 0) if (position - sz + 1 < 0) {fprintf(fout, "Out of bounds\n"); {save_file(address);f_save = 1;strcpy(address, ".output.txt"); starting_line = 1;}return;}
     fp_clip = fopen(".clipboard.txt", "w+");
     fseek(fpr, position, SEEK_SET);
     if (strcmp(option, "-f") == 0)
@@ -246,7 +249,7 @@ void re_cut(char *filename, int line, int start, int sz, char *option)
     }
     FILE *fpr;
     fpr = fopen(filename, "r");
-    if (fpr == NULL){fprintf(fout, "%s", "file not found\n");{strcpy(address, ".output.txt"); starting_line = 1;} return;}
+    if (fpr == NULL){fprintf(fout, "%s", "file not found\n");{save_file(address);f_save = 1;strcpy(address, ".output.txt"); starting_line = 1;} return;}
     fclose(fpr);
     re_copy(filename, line, start, sz, option);
     re_removestr(filename, line, start, sz, option);
@@ -282,9 +285,9 @@ void re_find(char *filename, char *message, int fcount, int fat, int fbyword, in
     }
     FILE *fpr;
     fpr = fopen(filename, "r");
-    if (fpr == NULL) {fprintf(fout, "%s", "file not found\n"); {strcpy(address, ".output.txt"); starting_line = 1;}return;}
-    if (fcount == 1 && fall + fat + fbyword != 0) {fprintf(fout, "%s", "Invalid set of options\n"); {strcpy(address, ".output.txt"); starting_line = 1;}return;}
-    if (fall == 1 && fat == 1) {fprintf(fout, "%s", "Invalid set of options\n");{strcpy(address, ".output.txt"); starting_line = 1;} return;}
+    if (fpr == NULL) {fprintf(fout, "%s", "file not found\n"); {save_file(address);f_save = 1;strcpy(address, ".output.txt"); starting_line = 1;}return;}
+    if (fcount == 1 && fall + fat + fbyword != 0) {fprintf(fout, "%s", "Invalid set of options\n"); {save_file(address);f_save = 1;strcpy(address, ".output.txt"); starting_line = 1;}return;}
+    if (fall == 1 && fat == 1) {fprintf(fout, "%s", "Invalid set of options\n");{save_file(address);f_save = 1;strcpy(address, ".output.txt"); starting_line = 1;} return;}
     if (fcount == 0 && fat == 0 && fall == 0 && fbyword == 0)
     {
         int c, count = 0;
@@ -494,7 +497,7 @@ void re_replace(char *filename, char *message, char *message2, int fat, int fall
     }
     FILE *fpr;
     fpr = fopen(filename, "r");
-    if (fall == 1 && fat == 1) {fprintf(fout, "Invalid set of options\n"); {strcpy(address, ".output.txt"); starting_line = 1;}return;}
+    if (fall == 1 && fat == 1) {fprintf(fout, "Invalid set of options\n"); {save_file(address);f_save = 1;strcpy(address, ".output.txt"); starting_line = 1;}return;}
     make_copy(filename);
     if (fall == 0 && fat == 0)
     {
@@ -656,7 +659,7 @@ void re_undo_file(char *filename)
     }
     FILE *fp;
     fp = fopen(filename, "r");
-    if (fp == NULL) {fprintf(fout, "File not found\n");{strcpy(address, ".output.txt"); starting_line = 1;} return;}
+    if (fp == NULL) {fprintf(fout, "File not found\n");{save_file(address);f_save = 1;strcpy(address, ".output.txt"); starting_line = 1;} return;}
     fclose(fp);
     fp = fopen(filename2, "r");
     int k, counter = 0;
@@ -812,7 +815,7 @@ void re_closing_pair(char *filename)
     make_copy(filename);
     FILE *fpr, *fp;
     fpr = fopen(filename, "r");
-    if (fpr == NULL) {fprintf(fout, "File not found\n"); {strcpy(address, ".output.txt"); starting_line = 1;}return;}
+    if (fpr == NULL) {fprintf(fout, "File not found\n"); {save_file(address);f_save = 1;strcpy(address, ".output.txt"); starting_line = 1;}return;}
     int c, counter_pair = 0;
     while (1)
     {
@@ -1068,7 +1071,7 @@ void re_arman(char *input, char *word, int *counter_input, int *counter_word)
         }
         if (strlen(filename) == 0) {fprintf(fout, "Invalid input\n");return;}
         re_find(filename, out, fcount, fat, fbyword, fall, num_at);
-        {strcpy(address, ".output.txt"); starting_line = 1;}
+        {save_file(address);f_save = 1;strcpy(address, ".output.txt"); starting_line = 1;}
     }
     else if (strcmp(command, "grep") == 0)
     {
@@ -1091,7 +1094,7 @@ void re_arman(char *input, char *word, int *counter_input, int *counter_word)
                 }
             }
             else {fprintf(fout, "Invalid option\n");}
-            {strcpy(address, ".output.txt"); starting_line = 1;}
+            {save_file(address);f_save = 1;strcpy(address, ".output.txt"); starting_line = 1;}
         }
         if (counter_filenames == 0) {fprintf(fout, "Invalid input");return;}
         re_grep(counter_filenames, out, f_c, f_l);
@@ -1108,7 +1111,7 @@ void re_arman(char *input, char *word, int *counter_input, int *counter_word)
     // }
     // fclose(fout);
     // fclose(fout);
-    // {strcpy(address, ".output.txt"); starting_line = 1;}
+    // {save_file(address);f_save = 1;strcpy(address, ".output.txt"); starting_line = 1;}
 }
 
 void get_word(char *input, char *word , int *counter_input, int *counter_word)
@@ -1194,7 +1197,7 @@ void make_dis(WINDOW *win, int f_save, char mode, char* filename)
     wmove(win, 0, 0);
     wrefresh(win);
     FILE *fp;
-    fp = fopen(filename, "r");
+    fp = fopen(fkadd, "r");
     if (fp == NULL) return;
     char c;
     int line_num = starting_line;
@@ -1255,7 +1258,7 @@ void make_dis_vis(WINDOW *win, int f_save, char *filename, int ystart, int xstar
     wmove(win, 0, 0);
     wrefresh(win);
     FILE *fp;
-    fp = fopen(filename, "r");
+    fp = fopen(fkadd, "r");
     if (fp == NULL) return;
     char c;
     int line_num = starting_line;
@@ -1325,15 +1328,15 @@ void make_dis_vis(WINDOW *win, int f_save, char *filename, int ystart, int xstar
 
 void file_check(char *filename)
 {
-    if (filename[0] == '/'){
-        for (ll i = 1 ; i < strlen(filename) ; i++){
-            filename[i - 1] = filename[i];
+    if (fkadd[0] == '/'){
+        for (ll i = 1 ; i < strlen(fkadd) ; i++){
+            fkadd[i - 1] = fkadd[i];
         }
-        filename[strlen(filename) - 1] = '\0';
+        fkadd[strlen(fkadd) - 1] = '\0';
     }
     FILE* fp;
-    fp = fopen(filename, "r");
-    if (fp == NULL) {fprintf(fout, "file not found\n"); {strcpy(address, ".output.txt"); starting_line = 1;} return;}
+    fp = fopen(fkadd, "r");
+    if (fp == NULL) {fprintf(fout, "file not found\n"); {save_file(address);f_save = 1;strcpy(address, ".output.txt"); starting_line = 1;} return;}
     num_of_lines = 1;
     ends[0] = 0;
     int vc;
@@ -1374,17 +1377,17 @@ int find_size(int line1, int pos1, int line2, int pos2)
 void find_phase2(WINDOW* win, char *filename, char *str, int f_save)
 {
     init_pair(1, COLOR_BLACK, COLOR_GREEN);
-    if (filename[0] == '/'){
-        for (ll i = 1 ; i < strlen(filename) ; i++){
-            filename[i - 1] = filename[i];
+    if (fkadd[0] == '/'){
+        for (ll i = 1 ; i < strlen(fkadd) ; i++){
+            fkadd[i - 1] = fkadd[i];
         }
-        filename[strlen(filename) - 1] = '\0';
+        fkadd[strlen(fkadd) - 1] = '\0';
     }
     wclear(win);
     wmove(win, 0, 0);
     wrefresh(win);
     FILE *fp;
-    fp = fopen(filename, "r");
+    fp = fopen(fkadd, "r");
     if (fp == NULL) return;
     char c;
     int line_num = starting_line, pos_in_line = 0;
@@ -1471,6 +1474,50 @@ void find_phase2(WINDOW* win, char *filename, char *str, int f_save)
     attroff(A_STANDOUT);
 }
 
+void save_file(char *filename)
+{
+    if (filename[0] == '/'){
+        for (ll i = 1 ; i < strlen(filename) ; i++){
+            filename[i - 1] = filename[i];
+        }
+        filename[strlen(filename) - 1] = '\0';
+    }
+    FILE *f1, *f2;
+    f2 = fopen(fkadd, "r");
+    f1 = fopen(filename, "w");
+    int c;
+    while (1)
+    {
+        c = fgetc(f2);
+        if (feof(f2)) break;
+        fputc(c, f1);
+    }
+    fclose(f1);
+    fclose(f2);
+}
+
+void m_unt(char *filename)
+{
+    if (filename[0] == '/'){
+        for (ll i = 1 ; i < strlen(filename) ; i++){
+            filename[i - 1] = filename[i];
+        }
+        filename[strlen(filename) - 1] = '\0';
+    }
+    FILE *fp, *f;
+    fp = fopen(filename, "r");
+    f = fopen(fkadd, "w");
+    while(1)
+    {
+        vc = fgetc(fp);
+        if (feof(fp)) break;
+        fputc(vc, f);
+    }
+    fclose(f);
+    fclose(fp);
+    return;
+}
+
 int main()
 {
     char m;
@@ -1483,13 +1530,17 @@ int main()
     int counter_input = 0;
     char command[MAX_VAL], word[MAX_VAL], option[MAX_VAL];
     int counter_word = 0, flag_arman = 0;
+    make_name(address, fkadd);
+    m_unt(address);
     while (1)
     {
         if (strcmp(address, ".output.txt") == 0)
         {
-            m_unt(address);
+            m_untp(address);
             strcpy(address, ".Untitled.txt");
+            f_save = 0;
         }
+        make_name(address, fkadd);
         file_check(address);
         if (mode == 'N')
         {
@@ -1499,7 +1550,7 @@ int main()
             empty(input);
             counter_input = 0;
             counter_word = 0;
-            make_dis(win, 0, 'N', address);
+            make_dis(win, f_save, 'N', address);
             fout = fopen(".output.txt", "w");
             wmove(win, takey, takex);
             takey = 0;
@@ -1523,7 +1574,7 @@ int main()
                     counter_input = 0;
                     get_word(input, word, &counter_input, &counter_word);
                     strcpy(word_find, word);
-                    find_phase2(win, address, word_find, 0);
+                    find_phase2(win, address, word_find, f_save);
                     wmove(win, ry, rx);
                 }
                 else if (c == 'n')
@@ -1532,11 +1583,11 @@ int main()
                 }
                 else if (c == 'i') {echo(); mode = 'I'; break;}
                 else if (c == 'v') {echo(); mode = 'V'; getyx(win, ry, rx); break;}
-                else if (c == 'u') {re_undo_file(address); make_dis(win, 0, mode, address); file_check(address); wmove(win, 0, 3); wrefresh(win);}
+                else if (c == 'u') {re_undo_file(address); make_dis(win, f_save, mode, address); file_check(address); wmove(win, 0, 3); wrefresh(win);}
                 else if (c == '=')
                 {
                     re_closing_pair(address);
-                    make_dis(win, 0, mode, address);
+                    make_dis(win, f_save, mode, address);
                     file_check(address);
                     wmove(win, 0, 3);
                     wrefresh(win);
@@ -1546,7 +1597,7 @@ int main()
                     int cy, cx;
                     getyx(win ,cy, cx);
                     re_paste(address, cy + 1, cx - 3);
-                    make_dis(win, 0, mode, address);
+                    make_dis(win, f_save, mode, address);
                     file_check(address);
                     wmove(win, 0, 3);
                     wrefresh(win);
@@ -1557,10 +1608,10 @@ int main()
                     else if (cy == LINES - 5 && cy < num_of_lines - starting_line)
                     {
                         starting_line++;
-                        make_dis(win, 0, mode, address);
+                        make_dis(win, f_save, mode, address);
                     }
                     cx = MIN(cx, ends[cy + starting_line - 1] + 3);
-                    make_dis(win, 0, mode, address);
+                    make_dis(win, f_save, mode, address);
                     file_check(address);
                     wmove(win, cy, cx);
                     wrefresh(win);
@@ -1571,10 +1622,10 @@ int main()
                     else if (cy == 0 && starting_line > 1)
                     {
                         starting_line--;
-                        make_dis(win, 0, mode, address);
+                        make_dis(win, f_save, mode, address);
                     }
                     cx = MIN(cx, ends[cy + starting_line - 1] + 3);
-                    make_dis(win, 0, mode, address);
+                    make_dis(win, f_save, mode, address);
                     file_check(address);
                     wmove(win, cy, cx);
                     wrefresh(win);
@@ -1582,7 +1633,7 @@ int main()
                 else if (c == 'l')
                 {
                     if (cx <= ends[cy + starting_line - 1] + 2) cx++;
-                    make_dis(win, 0, mode, address);
+                    make_dis(win, f_save, mode, address);
                     file_check(address);
                     wmove(win, cy, cx);
                     wrefresh(win);
@@ -1590,7 +1641,7 @@ int main()
                 else if (c == 'h')
                 {
                     if (cx > 3) cx--;
-                    make_dis(win, 0, mode, address);
+                    make_dis(win, f_save, mode, address);
                     file_check(address);
                     wmove(win, cy, cx);
                     wrefresh(win);
@@ -1623,7 +1674,11 @@ int main()
                 if (strcmp(option, "--file") == 0)
                 {
                     get_word(input, word, &counter_input, &counter_word);
+                    save_file(address);
+                    f_save = 1;
                     strcpy(address, word);
+                    m_unt(address);
+                    f_save = 1;
                     re_cat(word);
                 }
                 while (counter_input < strlen(input))
@@ -1640,7 +1695,7 @@ int main()
             else if (strcmp(command, "insertstr") == 0)
             {
                 char filename[MAX_VAL] = {}, message[MAX_VAL] = {};
-                strcpy(filename, address);
+                strcpy(filename, fkadd);
                 int line = -1, start = -1;
                 while (counter_input < strlen(input))
                 {
@@ -1661,15 +1716,15 @@ int main()
                         get_word(input, word, &counter_input, &counter_word);
                         get_pos(word, &line, &start);
                     }
-                    else {fprintf(fout, "Not valid option\n");{strcpy(address, ".output.txt"); starting_line = 1;}}
+                    else {fprintf(fout, "Not valid option\n");{save_file(address);f_save = 1;strcpy(address, ".output.txt"); starting_line = 1;}}
                 }
-                if (line == -1 || start == -1 || strlen(filename) == 0 || strlen(message) == 0) {fprintf(fout, "Invalid input\n"); {strcpy(address, ".output.txt"); starting_line = 1;} continue;}
+                if (line == -1 || start == -1 || strlen(filename) == 0 || strlen(message) == 0) {fprintf(fout, "Invalid input\n"); {save_file(address);f_save = 1;strcpy(address, ".output.txt"); starting_line = 1;} continue;}
                 re_insertstr(filename, message, line, start);
             }
             else if (strcmp(command, "removestr") == 0)
             {
                 char filename[MAX_VAL], op[5];
-                strcpy(filename, address);
+                strcpy(filename, fkadd);
                 int line = -1, sz = -1, start = -1;
                 while (counter_input < strlen(input))
                 {
@@ -1694,16 +1749,16 @@ int main()
                     {
                         strcpy(op, option);
                     }
-                    else {fprintf(fout, "Not valid option\n");{strcpy(address, ".output.txt"); starting_line = 1;}}
+                    else {fprintf(fout, "Not valid option\n");{save_file(address);f_save = 1;strcpy(address, ".output.txt"); starting_line = 1;}}
                 }
-                if (line == -1 || start == -1 || sz == -1 || strlen(filename) == 0 || strlen(op) == 0) {fprintf(fout, "Invalid input\n"); {strcpy(address, ".output.txt"); starting_line = 1;}continue;}
+                if (line == -1 || start == -1 || sz == -1 || strlen(filename) == 0 || strlen(op) == 0) {fprintf(fout, "Invalid input\n"); {save_file(address);f_save = 1;strcpy(address, ".output.txt"); starting_line = 1;}continue;}
                 re_removestr(filename, line, start, sz, op);
             }
             else if (strcmp(command, "undo") == 0)
             {
                 if (counter_input == strlen(input))
                 {
-                    strcpy(word, address);
+                    strcpy(word, fkadd);
                     re_undo_file(word);
                 }
                 else
@@ -1721,7 +1776,7 @@ int main()
             {
                 get_word(input, word, &counter_input, &counter_word);
                 re_tree("root", 0, char_to_num(word));
-                {strcpy(address, ".output.txt"); starting_line = 1;}
+                {save_file(address);f_save = 1;strcpy(address, ".output.txt"); starting_line = 1;}
                 while (counter_input < strlen(input))
                 {
                     get_word(input, word, &counter_input, &counter_word);
@@ -1731,7 +1786,7 @@ int main()
                         re_arman(input, word, &counter_input, &counter_word);
                     }
                 }
-                // {strcpy(address, ".output.txt"); starting_line = 1;}
+                // {save_file(address);f_save = 1;strcpy(address, ".output.txt"); starting_line = 1;}
             }
             else if (strcmp(command, "compare") == 0)
             {
@@ -1741,7 +1796,7 @@ int main()
                 get_word(input, word, &counter_input, &counter_word);
                 strcpy(filename2, word);
                 re_compare(filename1, filename2);
-                {strcpy(address, ".output.txt"); starting_line = 1;}
+                {save_file(address);f_save = 1;strcpy(address, ".output.txt"); starting_line = 1;}
                 while (counter_input < strlen(input))
                 {
                     get_word(input, word, &counter_input, &counter_word);
@@ -1751,11 +1806,11 @@ int main()
                         re_arman(input, word, &counter_input, &counter_word);
                     }
                 }
-                // {strcpy(address, ".output.txt"); starting_line = 1;}
+                // {save_file(address);f_save = 1;strcpy(address, ".output.txt"); starting_line = 1;}
             }
             else if (strcmp(command, "auto-indent") == 0)
             {
-                if (counter_input == strlen(input)) strcpy(word, address);
+                if (counter_input == strlen(input)) strcpy(word, fkadd);
                 else get_word(input, word, &counter_input, &counter_word);
                 re_closing_pair(word);
             }
@@ -1763,7 +1818,7 @@ int main()
             {
                 int fcount = 0, fbyword = 0, fat = 0, fall = 0, num_at = -1;
                 char filename[MAX_VAL] = {}, message[MAX_VAL] = {};
-                strcpy(filename, address);
+                strcpy(filename, fkadd);
                 while (counter_input < strlen(input))
                 {
                     get_word(input, word, &counter_input, &counter_word);
@@ -1787,11 +1842,11 @@ int main()
                         get_word(input, word, &counter_input, &counter_word);
                         num_at = char_to_num(word);
                     }
-                    else {fprintf(fout, "Invalid option\n");{strcpy(address, ".output.txt"); starting_line = 1;}}
+                    else {fprintf(fout, "Invalid option\n");{save_file(address);f_save = 1;strcpy(address, ".output.txt"); starting_line = 1;}}
                 }
-                if (strlen(filename) == 0 || strlen(message) == 0) {fprintf(fout, "Invalid input\n"); {strcpy(address, ".output.txt"); starting_line = 1;}continue;}
+                if (strlen(filename) == 0 || strlen(message) == 0) {fprintf(fout, "Invalid input\n"); {save_file(address);f_save = 1;strcpy(address, ".output.txt"); starting_line = 1;}continue;}
                 re_find(filename, message, fcount, fat, fbyword, fall, num_at);
-                {strcpy(address, ".output.txt"); starting_line = 1;}
+                {save_file(address);f_save = 1;strcpy(address, ".output.txt"); starting_line = 1;}
                 while (counter_input < strlen(input))
                 {
                     get_word(input, word, &counter_input, &counter_word);
@@ -1801,13 +1856,13 @@ int main()
                         re_arman(input, word, &counter_input, &counter_word);
                     }
                 }
-                // {strcpy(address, ".output.txt"); starting_line = 1;}
+                // {save_file(address);f_save = 1;strcpy(address, ".output.txt"); starting_line = 1;}
             }
             else if (strcmp(command, "replace") == 0)
             {
                 int fall = 0, fat = 0, num_at = -1;
                 char filename[MAX_VAL] = {}, message1[MAX_VAL] = {}, message2[MAX_VAL] = {};
-                strcpy(filename, address);
+                strcpy(filename, fkadd);
                 while (counter_input < strlen(input))
                 {
                     get_word(input, word, &counter_input, &counter_word);
@@ -1834,9 +1889,9 @@ int main()
                         get_word(input, word, &counter_input, &counter_word);
                         num_at = char_to_num(word);
                     }
-                    else {fprintf(fout, "Invalid option\n");{strcpy(address, ".output.txt"); starting_line = 1;}}
+                    else {fprintf(fout, "Invalid option\n");{save_file(address);f_save = 1;strcpy(address, ".output.txt"); starting_line = 1;}}
                 }
-                if (strlen(filename) == 0 || strlen(message1) == 0 || strlen(message2) == 0) {fprintf(fout, "Invalid input\n"); {strcpy(address, ".output.txt"); starting_line = 1;}continue;}
+                if (strlen(filename) == 0 || strlen(message1) == 0 || strlen(message2) == 0) {fprintf(fout, "Invalid input\n"); {save_file(address);f_save = 1;strcpy(address, ".output.txt"); starting_line = 1;}continue;}
                 re_replace(filename, message1, message2, fat, fall, num_at);
                 wmove(win, takey, takex);
                 wrefresh(win);
@@ -1849,7 +1904,7 @@ int main()
                         re_arman(input, word, &counter_input, &counter_word);
                     }
                 }
-                // {strcpy(address, ".output.txt"); starting_line = 1;}
+                // {save_file(address);f_save = 1;strcpy(address, ".output.txt"); starting_line = 1;}
             }
             else if (strcmp(command, "grep") == 0)
             {
@@ -1876,11 +1931,11 @@ int main()
                             counter_filenames++;
                         }
                     }
-                    else {fprintf(fout, "Invalid option\n");{strcpy(address, ".output.txt"); starting_line = 1;}}
+                    else {fprintf(fout, "Invalid option\n");{save_file(address);f_save = 1;strcpy(address, ".output.txt"); starting_line = 1;}}
                 }
-                if (strlen(message) == 0 || counter_filenames == 0) {fprintf(fout, "Invalid input");{strcpy(address, ".output.txt"); starting_line = 1;}continue;}
+                if (strlen(message) == 0 || counter_filenames == 0) {fprintf(fout, "Invalid input");{save_file(address);f_save = 1;strcpy(address, ".output.txt"); starting_line = 1;}continue;}
                 re_grep(counter_filenames, message, f_c, f_l);
-                {strcpy(address, ".output.txt"); starting_line = 1;}
+                {save_file(address);f_save = 1;strcpy(address, ".output.txt"); starting_line = 1;}
                 while (counter_input < strlen(input))
                 {
                     get_word(input, word, &counter_input, &counter_word);
@@ -1890,12 +1945,12 @@ int main()
                         re_arman(input, word, &counter_input, &counter_word);
                     }
                 }
-                // {strcpy(address, ".output.txt"); starting_line = 1;}
+                // {save_file(address);f_save = 1;strcpy(address, ".output.txt"); starting_line = 1;}
             }
             else if (strcmp(command, "copystr") == 0)
             {
                 char filename[MAX_VAL], op[MAX_VAL];
-                strcpy(filename, address);
+                strcpy(filename, fkadd);
                 int line = -1, start = -1, sz = -1;
                 while (counter_input < strlen(input))
                 {
@@ -1917,15 +1972,15 @@ int main()
                         sz = char_to_num(word);
                     }
                     else if (strcmp(option, "-f") == 0 || strcmp(option, "-b") == 0) strcpy(op, option);
-                    else {fprintf(fout, "Invalid option\n");{strcpy(address, ".output.txt"); starting_line = 1;}}
+                    else {fprintf(fout, "Invalid option\n");{save_file(address);f_save = 1;strcpy(address, ".output.txt"); starting_line = 1;}}
                 }
-                if (line == -1 || start == -1 || strlen(filename) == 0 || strlen(op) == 0) {fprintf(fout, "Invalid input\n");{strcpy(address, ".output.txt"); starting_line = 1;} continue;}
+                if (line == -1 || start == -1 || strlen(filename) == 0 || strlen(op) == 0) {fprintf(fout, "Invalid input\n");{save_file(address);f_save = 1;strcpy(address, ".output.txt"); starting_line = 1;} continue;}
                 re_copy(filename, line, start, sz, op);
             }
             else if (strcmp(command, "cutstr") == 0)
             {
                 char filename[MAX_VAL], op[MAX_VAL];
-                strcpy(filename, address);
+                strcpy(filename, fkadd);
                 int line = -1, start = -1, sz = -1;
                 while (counter_input < strlen(input))
                 {
@@ -1947,15 +2002,15 @@ int main()
                         sz = char_to_num(word);
                     }
                     else if (strcmp(option, "-f") == 0 || strcmp(option, "-b") == 0) strcpy(op, option);
-                    else {fprintf(fout, "Invalid option\n");{strcpy(address, ".output.txt"); starting_line = 1;}}
+                    else {fprintf(fout, "Invalid option\n");{save_file(address);f_save = 1;strcpy(address, ".output.txt"); starting_line = 1;}}
                 }
-                if (line == -1 || start == -1 || strlen(filename) == 0 || strlen(op) == 0) {fprintf(fout, "Invalid input\n"); {strcpy(address, ".output.txt"); starting_line = 1;}continue;}
+                if (line == -1 || start == -1 || strlen(filename) == 0 || strlen(op) == 0) {fprintf(fout, "Invalid input\n"); {save_file(address);f_save = 1;strcpy(address, ".output.txt"); starting_line = 1;}continue;}
                 re_cut(filename, line, start, sz, op);
             }
             else if (strcmp(command, "pastestr") == 0)
             {
                 char filename[MAX_VAL];
-                strcpy(filename, address);
+                strcpy(filename, fkadd);
                 int line = -1, start = -1;
                 while (counter_input < strlen(input))
                 {
@@ -1971,9 +2026,9 @@ int main()
                         get_word(input, word, &counter_input, &counter_word);
                         get_pos(word, &line, &start);
                     }
-                    else {fprintf(fout, "Invalid option\n");{strcpy(address, ".output.txt"); starting_line = 1;}}
+                    else {fprintf(fout, "Invalid option\n");{save_file(address);f_save = 1;strcpy(address, ".output.txt"); starting_line = 1;}}
                 }
-                if (line == -1 || start == -1 || strlen(filename) == 0) {fprintf(fout, "Invalid input\n"); {strcpy(address, ".output.txt"); starting_line = 1;}continue;}
+                if (line == -1 || start == -1 || strlen(filename) == 0) {fprintf(fout, "Invalid input\n"); {save_file(address);f_save = 1;strcpy(address, ".output.txt"); starting_line = 1;}continue;}
                 re_paste(filename, line, start);
             }
             else if (strcmp(command, "open") == 0)
@@ -1987,18 +2042,31 @@ int main()
                 }
                 FILE *fpt;
                 fpt = fopen(word, "r");
-                if (fpt == NULL) {fprintf(fout, "File not found\n"); {strcpy(address, ".output.txt"); starting_line = 1;}}
-                else strcpy(address, word);
-                starting_line = 1;
+                if (fpt == NULL) {fprintf(fout, "File not found\n"); {save_file(address);f_save = 1;strcpy(address, ".output.txt"); starting_line = 1;}}
+                else 
+                {
+                    save_file(address);
+                    f_save = 1;
+                    strcpy(address, word);
+                    make_name(address, fkadd);
+                    starting_line = 1;
+                    m_unt(address);
+                    f_save = 1;
+                }
             }
             else if (strcmp(command, "saveas") == 0)
             {
                 get_word(input, word, &counter_input, &counter_word);
                 if (make_save(address, word) == 1)fprintf(fout, "Succesfull\n");
                 else fprintf(fout, "Failed\n");
-                {strcpy(address, ".output.txt"); starting_line = 1;}
+                {save_file(address);f_save = 1;strcpy(address, ".output.txt"); starting_line = 1;}
             }
-            else {fprintf(fout, "Invalid input\n");{strcpy(address, ".output.txt"); starting_line = 1;}}
+            else if (strcmp(command, "save") == 0)
+            {
+                save_file(address);
+                f_save = 1;
+            }
+            else {fprintf(fout, "Invalid input\n");{save_file(address);f_save = 1;strcpy(address, ".output.txt"); starting_line = 1;}}
             fclose(fout);
             noecho();
 
@@ -2009,7 +2077,7 @@ int main()
             int cx, cy;
             clear();
             wrefresh(win);
-            make_dis(win, 0, mode, address);
+            make_dis(win, f_save, mode, address);
             wmove(win, 0, 3);
             int c;
             while (1) // checking keyboard input
@@ -2024,7 +2092,7 @@ int main()
                     else if (cy == LINES - 5 && cy < num_of_lines - starting_line)
                     {
                         starting_line++;
-                        make_dis(win, 0, mode, address);
+                        make_dis(win, f_save, mode, address);
                     }
                     cx = MIN(cx, ends[cy + starting_line - 1] + 3);
                     wmove(win, cy, cx);
@@ -2036,7 +2104,7 @@ int main()
                     else if (cy == 0 && starting_line > 1)
                     {
                         starting_line--;
-                        make_dis(win, 0, mode, address);
+                        make_dis(win, f_save, mode, address);
                     }
                     cx = MIN(cx, ends[cy + starting_line - 1] + 3);
                     wmove(win, cy, cx);
@@ -2056,29 +2124,31 @@ int main()
                 }
                 else if (c == KEY_BACKSPACE)
                 {
+                    f_save = 0;
                     if (cx <= 2) continue;
                     else if (cx == 3 && cy + starting_line == 1) continue;
                     else if (cx == 3)
                     {
-                        re_removestr(address, cy + starting_line, cx - 4, 1, "-f");
-                        make_dis(win, 0, mode, address);
+                        re_removestr(fkadd, cy + starting_line, cx - 4, 1, "-f");
+                        make_dis(win, f_save, mode, address);
                         wmove(win , cy - 1, ends[cy + starting_line - 2] + 3);
                         file_check(address);
                         wrefresh(win);
                         continue;
                     }
-                    re_removestr(address, cy + starting_line, cx - 4, 1, "-f");
-                    make_dis(win, 0, mode, address);
+                    re_removestr(fkadd, cy + starting_line, cx - 4, 1, "-f");
+                    make_dis(win, f_save, mode, address);
                     file_check(address);
                     wmove(win , cy, cx - 1);
                     wrefresh(win);
                 }
                 else
                 {
+                    f_save = 0;
                     char mess[10] = {};
                     mess[0] = (char) c;
-                    re_insertstr(address, mess, cy + starting_line, cx - 3);
-                    make_dis(win, 0, mode, address);
+                    re_insertstr(fkadd, mess, cy + starting_line, cx - 3);
+                    make_dis(win, f_save, mode, address);
                     file_check(address);
                     if (c == '\n')
                     {
@@ -2086,7 +2156,7 @@ int main()
                         else
                         {
                             starting_line++;
-                            make_dis(win, 0, mode, address);
+                            make_dis(win, f_save, mode, address);
                             file_check(address);
                         }
                         cx = 2;
@@ -2103,7 +2173,7 @@ int main()
             clear();
             wrefresh(win);
             getyx(win, cay, cax);
-            make_dis_vis(win, 0, address, ry, rx, ry, rx);
+            make_dis_vis(win, f_save, address, ry, rx, ry, rx);
             wmove(win, ry, rx);
             int c;
             while (1) // checking keyboard input
@@ -2121,7 +2191,7 @@ int main()
                         ry--;
                     }
                     cx = MIN(cx, ends[cy + starting_line - 1] + 3);
-                    make_dis_vis(win, 0, address, ry, rx, cy, cx);
+                    make_dis_vis(win, f_save, address, ry, rx, cy, cx);
                     wmove(win, cy, cx);
                     wrefresh(win);
                 }
@@ -2134,21 +2204,21 @@ int main()
                         ry++;
                     }
                     cx = MIN(cx, ends[cy + starting_line - 1] + 3);
-                    make_dis_vis(win, 0, address, ry, rx, cy, cx);
+                    make_dis_vis(win, f_save, address, ry, rx, cy, cx);
                     wmove(win, cy, cx);
                     wrefresh(win);
                 }
                 else if (c == KEY_RIGHT)
                 {
                     if (cx <= ends[cy + starting_line - 1] + 2) cx++;
-                    make_dis_vis(win, 0, address, ry, rx, cy, cx);
+                    make_dis_vis(win, f_save, address, ry, rx, cy, cx);
                     wmove(win, cy, cx);
                     wrefresh(win);
                 }
                 else if (c == KEY_LEFT)
                 {
                     if (cx > 3) cx--;
-                    make_dis_vis(win, 0, address, ry, rx, cy, cx);
+                    make_dis_vis(win, f_save, address, ry, rx, cy, cx);
                     wmove(win, cy, cx);
                     wrefresh(win);
                 }
@@ -2156,26 +2226,27 @@ int main()
                 {
                     if (ry > cy || (ry == cy && cx < rx))
                     {
-                        re_copy(address, ry + starting_line , rx - 3, find_size(ry + starting_line - 1, rx - 3, cy + starting_line - 1, cx - 3) + 1, "-b");
+                        re_copy(fkadd, ry + starting_line , rx - 3, find_size(ry + starting_line - 1, rx - 3, cy + starting_line - 1, cx - 3) + 1, "-b");
                     }
                     else
                     {
-                        re_copy(address, ry + starting_line , rx - 3, find_size(ry + starting_line - 1, rx - 3, cy + starting_line - 1, cx - 3) + 1, "-f");
+                        re_copy(fkadd, ry + starting_line , rx - 3, find_size(ry + starting_line - 1, rx - 3, cy + starting_line - 1, cx - 3) + 1, "-f");
                     }
                     mode = 'N';
                     break;
                 }
                 else if (c == 'd')
                 {
+                    f_save = 0;
                     if (ry > cy || (ry == cy && cx < rx))
                     {
-                        re_cut(address, ry + starting_line , rx - 3, find_size(ry + starting_line - 1, rx - 3, cy + starting_line - 1, cx - 3) + 1, "-b");
+                        re_cut(fkadd, ry + starting_line , rx - 3, find_size(ry + starting_line - 1, rx - 3, cy + starting_line - 1, cx - 3) + 1, "-b");
                     }
                     else
                     {
-                        re_cut(address, ry + starting_line , rx - 3, find_size(ry + starting_line - 1, rx - 3, cy + starting_line - 1, cx - 3) + 1, "-f");
+                        re_cut(fkadd, ry + starting_line , rx - 3, find_size(ry + starting_line - 1, rx - 3, cy + starting_line - 1, cx - 3) + 1, "-f");
                     }
-                    make_dis_vis(win, 0, address, ry, rx, cy, cx);
+                    make_dis_vis(win, f_save, address, ry, rx, cy, cx);
                     wrefresh(win);
                     file_check(address);
                     mode = 'N';
