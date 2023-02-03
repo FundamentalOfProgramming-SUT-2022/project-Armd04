@@ -1,1 +1,0 @@
-int main {  if(f== 0) {       printf("Hello");}     }

@@ -187,7 +187,7 @@ void add_str(char *s, int n, char c)
     return;
 }
 
-void m_untp(char *filename)
+void m_unt(char *filename)
 {
     if (filename[0] == '/'){
         for (ll i = 1 ; i < strlen(filename) ; i++){
@@ -277,29 +277,4 @@ void find_line(char *filename, int index, int *line, int *pos)
         ind++;
     }
     fclose(fp);
-}
-
-void make_name(char *filename1, char *filename2)
-{
-    empty(filename2);
-    if (filename1[0] == '/'){
-        for (ll i = 1 ; i < strlen(filename1) ; i++){
-            filename1[i - 1] = filename1[i];
-        }
-        filename1[strlen(filename1) - 1] = '\0';
-    }
-    strcpy(filename2, filename1);
-    int flag = 0;
-    int lenf2 = strlen(filename2) - 1;
-    for (int i = lenf2 ; i >= 0 ; i--)
-    {
-        if (filename2[i] == '/')
-        {
-            filename2[i + 1] = '.';
-            filename2[i + 2] = '.';
-            flag = 1;
-            break;
-        }
-        if (flag == 0) filename2[i + 2] = filename2[i];
-    }
 }
