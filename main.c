@@ -271,6 +271,14 @@ void re_find(char *filename, char *message, int fcount, int fat, int fbyword, in
         }
         filename[strlen(filename) - 1] = '\0';
     }
+    if (message[strlen(message) - 1] == '\b') message[strlen(message) - 1] = '\0';
+    if (message[0] == '\b')
+    {
+        for (ll i = 1 ; i < strlen(message) ; i++){
+            message[i - 1] = message[i];
+        }
+        message[strlen(message) - 1] = '\0';
+    }
     FILE *fpr;
     fpr = fopen(filename, "r");
     if (fpr == NULL) {fprintf(fout, "%s", "file not found\n"); return;}
@@ -482,6 +490,14 @@ void re_replace(char *filename, char *message, char *message2, int fat, int fall
             filename[i - 1] = filename[i];
         }
         filename[strlen(filename) - 1] = '\0';
+    }
+    if (message[strlen(message) - 1] == '\b') message[strlen(message) - 1] = '\0';
+    if (message[0] == '\b')
+    {
+        for (ll i = 1 ; i < strlen(message) ; i++){
+            message[i - 1] = message[i];
+        }
+        message[strlen(message) - 1] = '\0';
     }
     FILE *fpr;
     fpr = fopen(filename, "r");
@@ -1074,6 +1090,13 @@ void get_word(char *input, char *word , int *counter_input, int *counter_word)
                 if (input[*(counter_input) + 1] == '\\') {word[(*counter_word)] = '\\'; (*counter_word)++; (*counter_input) += 2;}
                 else if (input[*(counter_input) + 1] == 'n') {word[(*counter_word)] = '\n'; (*counter_word)++; (*counter_input) += 2;}
                 else if (input[*(counter_input) + 1] == '"') {word[(*counter_word)] = '\"'; (*counter_word)++; (*counter_input) += 2;}
+                else if (input[*(counter_input) + 1] == '*') {word[(*counter_word)] = '*'; (*counter_word)++; (*counter_input) += 2;}
+            }
+            else if (input[(*counter_input)] == '*')
+            {
+                word[(*counter_word)] = '\b';
+                (*counter_word)++;
+                (*counter_input)++;
             }
             else{
                 word[(*counter_word)] = input[(*counter_input)];
@@ -1093,6 +1116,13 @@ void get_word(char *input, char *word , int *counter_input, int *counter_word)
                 if (input[*(counter_input) + 1] == '\\') {word[(*counter_word)] = '\\'; (*counter_word)++; (*counter_input) += 2;}
                 else if (input[*(counter_input) + 1] == 'n') {word[(*counter_word)] = '\n'; (*counter_word)++; (*counter_input) += 2;}
                 else if (input[*(counter_input) + 1] == '"') {word[(*counter_word)] = '\"'; (*counter_word)++; (*counter_input) += 2;}
+                else if (input[*(counter_input) + 1] == '*') {word[(*counter_word)] = '*'; (*counter_word)++; (*counter_input) += 2;}
+            }
+            else if (input[(*counter_input)] == '*')
+            {
+                word[(*counter_word)] = '\b';
+                (*counter_word)++;
+                (*counter_input)++;
             }
             else{
                 word[(*counter_word)] = input[(*counter_input)];
@@ -1255,7 +1285,10 @@ int main()
         else if (strcmp(command, "tree") == 0)
         {
             get_word(input, word, &counter_input, &counter_word);
-            re_tree("root", 0, char_to_num(word));
+            int a = char_to_num(word);
+            if (strcmp(word, "-1") == 0) {a = 100; re_tree("root", 0, a);}
+            else if (a < -1) {fprintf(fout, "Invalid depth\n");}
+            else re_tree("root", 0, a);
             while (counter_input < strlen(input))
             {
                 get_word(input, word, &counter_input, &counter_word);

@@ -14,7 +14,7 @@
 #define MAX(i, j) (i > j)? i: j
 #define MIN(i, j) (i < j)? i: j
 
-char address[MAX_VAL] = "root/test.txt", word_find[MAX_VAL] = {};
+char address[MAX_VAL] = ".Untitled.txt", word_find[MAX_VAL] = {};
 int f_save = 1;
 char mode = 'N';
 int starting_line = 1, ends[MAX_VAL] = {0}, num_of_lines = 0, rx, ry, takey = 0, takex = 3;
@@ -281,6 +281,14 @@ void re_find(char *filename, char *message, int fcount, int fat, int fbyword, in
         }
         filename[strlen(filename) - 1] = '\0';
     }
+    if (message[strlen(message) - 1] == '\b') message[strlen(message) - 1] = '\0';
+    if (message[0] == '\b')
+    {
+        for (ll i = 1 ; i < strlen(message) ; i++){
+            message[i - 1] = message[i];
+        }
+        message[strlen(message) - 1] = '\0';
+    }
     FILE *fpr;
     fpr = fopen(filename, "r");
     if (fpr == NULL) {fprintf(fout, "%s", "file not found\n"); {strcpy(address, ".output.txt"); starting_line = 1;}return;}
@@ -492,6 +500,14 @@ void re_replace(char *filename, char *message, char *message2, int fat, int fall
             filename[i - 1] = filename[i];
         }
         filename[strlen(filename) - 1] = '\0';
+    }
+    if (message[strlen(message) - 1] == '\b') message[strlen(message) - 1] = '\0';
+    if (message[0] == '\b')
+    {
+        for (ll i = 1 ; i < strlen(message) ; i++){
+            message[i - 1] = message[i];
+        }
+        message[strlen(message) - 1] = '\0';
     }
     FILE *fpr;
     fpr = fopen(filename, "r");
@@ -1127,6 +1143,13 @@ void get_word(char *input, char *word , int *counter_input, int *counter_word)
                 if (input[*(counter_input) + 1] == '\\') {word[(*counter_word)] = '\\'; (*counter_word)++; (*counter_input) += 2;}
                 else if (input[*(counter_input) + 1] == 'n') {word[(*counter_word)] = '\n'; (*counter_word)++; (*counter_input) += 2;}
                 else if (input[*(counter_input) + 1] == '"') {word[(*counter_word)] = '\"'; (*counter_word)++; (*counter_input) += 2;}
+                else if (input[*(counter_input) + 1] == '*') {word[(*counter_word)] = '*'; (*counter_word)++; (*counter_input) += 2;}
+            }
+            else if (input[(*counter_input)] == '*')
+            {
+                word[(*counter_word)] = '\b';
+                (*counter_word)++;
+                (*counter_input)++;
             }
             else{
                 word[(*counter_word)] = input[(*counter_input)];
@@ -1146,6 +1169,13 @@ void get_word(char *input, char *word , int *counter_input, int *counter_word)
                 if (input[*(counter_input) + 1] == '\\') {word[(*counter_word)] = '\\'; (*counter_word)++; (*counter_input) += 2;}
                 else if (input[*(counter_input) + 1] == 'n') {word[(*counter_word)] = '\n'; (*counter_word)++; (*counter_input) += 2;}
                 else if (input[*(counter_input) + 1] == '"') {word[(*counter_word)] = '\"'; (*counter_word)++; (*counter_input) += 2;}
+                else if (input[*(counter_input) + 1] == '*') {word[(*counter_word)] = '*'; (*counter_word)++; (*counter_input) += 2;}
+            }
+            else if (input[(*counter_input)] == '*')
+            {
+                word[(*counter_word)] = '\b';
+                (*counter_word)++;
+                (*counter_input)++;
             }
             else{
                 word[(*counter_word)] = input[(*counter_input)];
@@ -1485,6 +1515,8 @@ int main()
     int counter_input = 0;
     char command[MAX_VAL], word[MAX_VAL], option[MAX_VAL];
     int counter_word = 0, flag_arman = 0;
+    FILE *fq = fopen(address ,"w");
+    fclose(fq);
     while (1)
     {
         if (strcmp(address, ".output.txt") == 0)
@@ -1514,6 +1546,8 @@ int main()
                 getyx(win, cy, cx);
                 c = wgetch(win);
                 if (c == ':') {getyx(win, ry, rx);wmove(win, LINES - 1, 0);echo(); wprintw(win, ":");break;}
+                else if (c == '[') {starting_line = 1; make_dis(win, f_save, mode, address);wmove(win, 0, 3); wrefresh(win);}
+                else if (c == ']') {starting_line = MAX(starting_line, num_of_lines - LINES + 5);make_dis(win, f_save, mode, address);wmove(win, MIN(num_of_lines - 1, LINES - 5), ends[num_of_lines - 1] + 3); wrefresh(win); }
                 else if (c == '/')
                 {
                     getyx(win, ry, rx);
@@ -1533,7 +1567,7 @@ int main()
                 {
                     wmove(win, takey, takex);
                 }
-                else if (c == 'i') {echo(); mode = 'I'; break;}
+                else if (c == 'i') {getyx(win, ry, rx);echo(); mode = 'I'; break;}
                 else if (c == 'v') {echo(); mode = 'V'; getyx(win, ry, rx); break;}
                 else if (c == 'u') {f_save = 0;re_undo_file(address); make_dis(win,  f_save, mode, address); file_check(address); wmove(win, 0, 3); wrefresh(win);}
                 else if (c == '=')
@@ -1728,7 +1762,10 @@ int main()
             else if (strcmp(command, "tree") == 0)
             {
                 get_word(input, word, &counter_input, &counter_word);
-                re_tree("root", 0, char_to_num(word));
+                int a = char_to_num(word);
+                if (strcmp(word, "-1") == 0) {a = 100; re_tree("root", 0, a);}
+                else if (a < -1) {fprintf(fout, "Invalid Depth");}
+                else re_tree("root", 0, a);
                 {strcpy(address, ".output.txt"); starting_line = 1;}
                 while (counter_input < strlen(input))
                 {
@@ -2046,7 +2083,7 @@ int main()
             clear();
             wrefresh(win);
             make_dis(win,  f_save, mode, address);
-            wmove(win, 0, 3);
+            wmove(win, ry, rx);
             int c;
             while (1) // checking keyboard input
             {
@@ -2054,6 +2091,8 @@ int main()
                 noecho();
                 c = wgetch(win);
                 if (c == 27) {mode = 'N'; echo();break;}
+                else if (c == KEY_F(5)) {starting_line = 1; make_dis(win, f_save, mode, address);wmove(win, 0, 3); wrefresh(win);}
+                else if (c == KEY_F(6)) {starting_line = MAX(starting_line, num_of_lines - LINES + 5);make_dis(win, f_save, mode, address);wmove(win, MIN(num_of_lines - 1, LINES - 5), ends[num_of_lines - 1] + 3); wrefresh(win); }
                 else if (c == KEY_DOWN)
                 {
                     if (cy < LINES - 5 && cy < num_of_lines - 1)cy++;
@@ -2150,6 +2189,10 @@ int main()
                 noecho();
                 c = wgetch(win);
                 if (c == 27) {mode = 'N'; echo();break;}
+                else if (c == '[') {starting_line = 1; make_dis_vis(win, f_save, address, ry, rx, 0, 3);wmove(win, 0, 3); wrefresh(win);}
+                else if (c == ']') {int p = starting_line;starting_line = MAX(starting_line, num_of_lines - LINES + 5);
+                make_dis_vis(win, f_save, address, ry + (p-starting_line), rx, MIN(num_of_lines - 1, LINES - 5), ends[num_of_lines - 1] + 3);
+                wmove(win, MIN(num_of_lines - 1, LINES - 5), ends[num_of_lines - 1] + 3);wrefresh(win);}
                 else if (c == KEY_DOWN)
                 {
                     if (cy < LINES - 5 && cy < num_of_lines - 1)cy++;
